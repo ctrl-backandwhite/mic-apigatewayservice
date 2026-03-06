@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.r2dbc.BadSqlGrammarException;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,6 +27,7 @@ import java.util.List;
  */
 @Log4j2
 @Component
+@DependsOnDatabaseInitialization
 @RequiredArgsConstructor
 public class RouteSeeder implements ApplicationRunner {
 
@@ -43,11 +44,6 @@ public class RouteSeeder implements ApplicationRunner {
                                                 return seedRoutes();
                                         }
                                         log.info("Gateway routes already seeded ({} routes found). Skipping.", count);
-                                        return Mono.empty();
-                                })
-                                .onErrorResume(BadSqlGrammarException.class, ex -> {
-                                        log.error("No se pudo consultar la tabla gateway_route. Verifica que Liquibase esté habilitado y que JDBC/R2DBC usen el mismo schema.",
-                                                        ex);
                                         return Mono.empty();
                                 })
                                 .block();
