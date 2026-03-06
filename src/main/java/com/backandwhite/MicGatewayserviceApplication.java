@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @EnableCoreApplication
 @OpenAPIDefinition(servers = {
-        @Server(url = "https://mic-apigatewayservice-production.up.railway.app", description = "Production Server."),
+        @Server(url = "https://apigatewayservice-dev.up.railway.app", description = "Develop Server."),
         @Server(url = "https://localhost:3030", description = "Local Server.")
 })
 @EnableConfigurationProperties({JwtProperties.class, ServicesProperties.class})
