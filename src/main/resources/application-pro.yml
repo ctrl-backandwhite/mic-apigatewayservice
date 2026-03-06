@@ -22,31 +22,3 @@ spring:
 services:
   config:
     url: ${SERVICE_CONFIG_URL}
-  iam:
-    url: ${SERVICE_IAM_URL}
-  catalog:
-    url: ${SERVICE_CATALOG_URL}
-  customer:
-    url: ${SERVICE_CUSTOMER_URL}
-  tax:
-    url: ${SERVICE_TAX_URL}
-  inventory:
-    url: ${SERVICE_INVENTORY_URL}
-  pricing:
-    url: ${SERVICE_PRICING_URL}
-  shipping:
-    url: ${SERVICE_SHIPPING_URL}
-  cart:
-    url: ${SERVICE_CART_URL}
-  order:
-    url: ${SERVICE_ORDER_URL}
-  payment:
-    url: ${SERVICE_PAYMENT_URL}
-  notification:
-    url: ${SERVICE_NOTIFICATION_URL}
-  cms:
-    url: ${SERVICE_CMS_URL}
-  media:
-    url: ${SERVICE_MEDIA_URL}
-  analytics:
-    url: ${SERVICE_ANALYTICS_URL}
