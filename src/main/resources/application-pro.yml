@@ -12,12 +12,12 @@ spring:
     password: ${DB_PASSWORD}
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST:redis.railway.internal}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
       timeout: 60000
       ssl:
-        enabled: true
+        enabled: ${REDIS_SSL_ENABLED:false}
 
 services:
   config:
