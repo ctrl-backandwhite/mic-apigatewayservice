@@ -15,6 +15,30 @@
     <name>mic-gatewayservice</name>
     <description>API Gateway — enrutamiento dinámico (PostgreSQL), autenticación JWT y rate limiting</description>
 
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/ctrl-backandwhite/mic-coreservice</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
     </properties>
