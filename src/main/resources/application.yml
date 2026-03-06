@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  # Configuración de Netty para compatibilidad con Swagger UI
+  netty:
+    connection-timeout: 30s
+    idle-timeout: 60s
+  # Aumentar límites de headers y líneas HTTP
+  max-http-request-header-size: 16KB
+
+spring:
+  application:
+    name: mic-gatewayservice
+  profiles:
+    active: ${PROFILES:local}
+  main:
+    web-application-type: reactive
+  # Spring Boot 4.0 eliminó las auto-configuraciones de JPA, Kafka, Redis de spring-boot-autoconfigure.
+  # Esas clases ya no existen en Boot 4.0, por tanto no hace falta excluirlas.
+  # El gateway usa exclusivamente R2DBC + WebFlux.
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      # Las rutas se cargan desde PostgreSQL vía PostgresRouteDefinitionRepository.
+      # El RouteSeeder siembra las 15 rutas iniciales en el primer arranque.
+      routes: []
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, gateway
+  endpoint:
+    gateway:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+    issuer: ${JWT_ISSUER:mic-iamservice}

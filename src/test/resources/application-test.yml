@@ -1,0 +1,52 @@
+spring:
+  main:
+    web-application-type: reactive
+  autoconfigure:
+    exclude:
+      # Spring Cloud Commons 4.3.0 / Boot 4.0 compatibility: SimpleDiscoveryClientAutoConfiguration
+      # references WebServerInitializedEvent which was removed in Spring Boot 4.0.
+      # Service discovery is not needed in tests.
+      - org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration
+  cloud:
+    gateway:
+      routes: []
+  liquibase:
+    enabled: false
+
+services:
+  config:
+    url: http://localhost:9999
+  iam:
+    url: http://localhost:9999
+  catalog:
+    url: http://localhost:9999
+  customer:
+    url: http://localhost:9999
+  tax:
+    url: http://localhost:9999
+  inventory:
+    url: http://localhost:9999
+  pricing:
+    url: http://localhost:9999
+  shipping:
+    url: http://localhost:9999
+  cart:
+    url: http://localhost:9999
+  order:
+    url: http://localhost:9999
+  payment:
+    url: http://localhost:9999
+  notification:
+    url: http://localhost:9999
+  cms:
+    url: http://localhost:9999
+  media:
+    url: http://localhost:9999
+  analytics:
+    url: http://localhost:9999
+
+app:
+  jwt:
+    secret: test-secret-key-must-be-at-least-256-bits-long-for-hmac-sha256-algorithm
+    expiration-ms: 3600000
+    issuer: test-issuer

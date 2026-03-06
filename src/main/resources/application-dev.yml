@@ -1,0 +1,54 @@
+spring:
+  # JDBC para Liquibase (migraciones DDL)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/micgateway
+    username: ${DB_USERNAME:dev_user}
+    password: ${DB_PASSWORD:dev_password}
+  # R2DBC para operaciones reactivas en runtime
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/micgateway
+    username: ${DB_USERNAME:dev_user}
+    password: ${DB_PASSWORD:dev_password}
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000
+
+services:
+  config:
+    url: http://localhost:8081
+  iam:
+    url: http://localhost:8082
+  catalog:
+    url: http://localhost:8083
+  customer:
+    url: http://localhost:8084
+  tax:
+    url: http://localhost:8085
+  inventory:
+    url: http://localhost:8086
+  pricing:
+    url: http://localhost:8087
+  shipping:
+    url: http://localhost:8088
+  cart:
+    url: http://localhost:8089
+  order:
+    url: http://localhost:8090
+  payment:
+    url: http://localhost:8091
+  notification:
+    url: http://localhost:8092
+  cms:
+    url: http://localhost:8093
+  media:
+    url: http://localhost:8094
+  analytics:
+    url: http://localhost:8095
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-change-me-in-production-must-be-256-bits}
+    expiration-ms: 3600000
+    issuer: mic-iamservice
