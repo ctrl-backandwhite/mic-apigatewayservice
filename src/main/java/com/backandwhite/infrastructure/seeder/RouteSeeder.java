@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -71,61 +72,77 @@ public class RouteSeeder implements ApplicationRunner {
         }
 
         private List<GatewayRoute> buildInitialRoutes() {
-                return List.of(
-                                route("config-service", services.config().url(),
-                                                List.of("Path=/api/v1/config/**,/api/v1/languages/**,/api/v1/currencies/**,/api/v1/countries/**,/api/v1/zones/**,/api/v1/settings/**"),
-                                                0),
+                List<GatewayRoute> routes = new ArrayList<>();
 
-                                route("iam-service", services.iam().url(),
-                                                List.of("Path=/api/v1/auth/**,/api/v1/employees/**,/api/v1/profiles/**,/api/v1/permissions/**,/api/v1/api-clients/**"),
-                                                0),
+                addRouteIfConfigured(routes, "config-service", services.config(),
+                                List.of("Path=/api/v1/config/**,/api/v1/languages/**,/api/v1/currencies/**,/api/v1/countries/**,/api/v1/zones/**,/api/v1/settings/**"),
+                                0);
 
-                                route("catalog-service", services.catalog().url(),
-                                                List.of("Path=/api/v1/products/**,/api/v1/categories/**,/api/v1/manufacturers/**,/api/v1/suppliers/**,/api/v1/search/**"),
-                                                0),
+                addRouteIfConfigured(routes, "iam-service", services.iam(),
+                                List.of("Path=/api/v1/auth/**,/api/v1/employees/**,/api/v1/profiles/**,/api/v1/permissions/**,/api/v1/api-clients/**"),
+                                0);
 
-                                route("customer-service", services.customer().url(),
-                                                List.of("Path=/api/v1/customers/**"), 0),
+                addRouteIfConfigured(routes, "catalog-service", services.catalog(),
+                                List.of("Path=/api/v1/products/**,/api/v1/categories/**,/api/v1/manufacturers/**,/api/v1/suppliers/**,/api/v1/search/**"),
+                                0);
 
-                                route("tax-service", services.tax().url(),
-                                                List.of("Path=/api/v1/taxes/**,/api/v1/tax-rules-groups/**"), 0),
+                addRouteIfConfigured(routes, "customer-service", services.customer(),
+                                List.of("Path=/api/v1/customers/**"), 0);
 
-                                route("inventory-service", services.inventory().url(),
-                                                List.of("Path=/api/v1/stock/**,/api/v1/warehouses/**,/api/v1/supply-orders/**"),
-                                                0),
+                addRouteIfConfigured(routes, "tax-service", services.tax(),
+                                List.of("Path=/api/v1/taxes/**,/api/v1/tax-rules-groups/**"), 0);
 
-                                route("pricing-service", services.pricing().url(),
-                                                List.of("Path=/api/v1/pricing/**,/api/v1/specific-prices/**,/api/v1/catalog-price-rules/**"),
-                                                0),
+                addRouteIfConfigured(routes, "inventory-service", services.inventory(),
+                                List.of("Path=/api/v1/stock/**,/api/v1/warehouses/**,/api/v1/supply-orders/**"),
+                                0);
 
-                                route("shipping-service", services.shipping().url(),
-                                                List.of("Path=/api/v1/carriers/**,/api/v1/shipping/**"), 0),
+                addRouteIfConfigured(routes, "pricing-service", services.pricing(),
+                                List.of("Path=/api/v1/pricing/**,/api/v1/specific-prices/**,/api/v1/catalog-price-rules/**"),
+                                0);
 
-                                route("cart-service", services.cart().url(),
-                                                List.of("Path=/api/v1/carts/**"), 0),
+                addRouteIfConfigured(routes, "shipping-service", services.shipping(),
+                                List.of("Path=/api/v1/carriers/**,/api/v1/shipping/**"), 0);
 
-                                route("order-service", services.order().url(),
-                                                List.of("Path=/api/v1/orders/**,/api/v1/order-states/**"), 0),
+                addRouteIfConfigured(routes, "cart-service", services.cart(),
+                                List.of("Path=/api/v1/carts/**"), 0);
 
-                                route("payment-service", services.payment().url(),
-                                                List.of("Path=/api/v1/payments/**,/api/v1/payment-methods/**"), 0),
+                addRouteIfConfigured(routes, "order-service", services.order(),
+                                List.of("Path=/api/v1/orders/**,/api/v1/order-states/**"), 0);
 
-                                route("notification-service", services.notification().url(),
-                                                List.of("Path=/api/v1/notifications/**"), 0),
+                addRouteIfConfigured(routes, "payment-service", services.payment(),
+                                List.of("Path=/api/v1/payments/**,/api/v1/payment-methods/**"), 0);
 
-                                route("cms-service", services.cms().url(),
-                                                List.of("Path=/api/v1/pages/**,/api/v1/seo/**,/api/v1/stores/**,/api/v1/contact/**"),
-                                                0),
+                addRouteIfConfigured(routes, "notification-service", services.notification(),
+                                List.of("Path=/api/v1/notifications/**"), 0);
 
-                                route("media-service", services.media().url(),
-                                                List.of("Path=/api/v1/images/**,/api/v1/attachments/**"), 0),
+                addRouteIfConfigured(routes, "cms-service", services.cms(),
+                                List.of("Path=/api/v1/pages/**,/api/v1/seo/**,/api/v1/stores/**,/api/v1/contact/**"),
+                                0);
 
-                                route("analytics-service", services.analytics().url(),
-                                                List.of("Path=/api/v1/analytics/**"), 0),
+                addRouteIfConfigured(routes, "media-service", services.media(),
+                                List.of("Path=/api/v1/images/**,/api/v1/attachments/**"), 0);
 
-                                // Ruta para la API de gestión del propio gateway (siempre presente)
-                                route("gateway-management", "forward:///",
-                                                List.of("Path=/api/v1/gateway/**"), -1));
+                addRouteIfConfigured(routes, "analytics-service", services.analytics(),
+                                List.of("Path=/api/v1/analytics/**"), 0);
+
+                routes.add(route("gateway-management", "forward:///",
+                                List.of("Path=/api/v1/gateway/**"), -1));
+
+                return routes;
+        }
+
+        private void addRouteIfConfigured(
+                        List<GatewayRoute> routes,
+                        String routeId,
+                        ServicesProperties.Service service,
+                        List<String> predicates,
+                        int order) {
+                if (service == null || service.url() == null || service.url().isBlank()) {
+                        log.warn("Skipping seed route '{}' because service URL is not configured.", routeId);
+                        return;
+                }
+
+                routes.add(route(routeId, service.url(), predicates, order));
         }
 
         private GatewayRoute route(String id, String uri, List<String> predicates, int order) {
