@@ -11,7 +11,7 @@ spring:
   application:
     name: mic-gatewayservice
   profiles:
-    active: ${PROFILES:local}
+    active: ${SPRING_PROFILES_ACTIVE:${PROFILES:local}}
   main:
     web-application-type: reactive
   # Spring Boot 4.0 eliminó las auto-configuraciones de JPA, Kafka, Redis de spring-boot-autoconfigure.
