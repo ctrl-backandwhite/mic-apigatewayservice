@@ -26,17 +26,21 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Filtro global de autenticación JWT. Se ejecuta en todos los requests con orden -100.
+ * Filtro global de autenticación JWT. Se ejecuta en todos los requests con
+ * orden -100.
  *
- * <p>Flujo:
+ * <p>
+ * Flujo:
  * <ol>
- *   <li>Si la ruta es pública, delega al siguiente filtro sin validar.</li>
- *   <li>Si falta la cabecera Authorization o el prefijo Bearer, retorna 401.</li>
- *   <li>Si el token es inválido o expirado, retorna 401.</li>
- *   <li>Si el token es válido, propaga los claims como cabeceras al servicio downstream.</li>
+ * <li>Si la ruta es pública, delega al siguiente filtro sin validar.</li>
+ * <li>Si falta la cabecera Authorization o el prefijo Bearer, retorna 401.</li>
+ * <li>Si el token es inválido o expirado, retorna 401.</li>
+ * <li>Si el token es válido, propaga los claims como cabeceras al servicio
+ * downstream.</li>
  * </ol>
  *
- * <p>Las cabeceras propagadas son definidas en {@link AppConstants}:
+ * <p>
+ * Las cabeceras propagadas son definidas en {@link AppConstants}:
  * X-Auth-Subject, X-Auth-Roles, X-Auth-Customer-Id, X-Auth-Employee-Id.
  */
 @Log4j2
@@ -50,17 +54,18 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
      * Rutas públicas (cualquier método HTTP).
      */
     private static final List<String> PUBLIC_PATHS = List.of(
+            "/api/v1/granttypes",
             "/api/v1/auth/",
             "/api/v1/customers/register",
             "/api/v1/customers/login",
             "/actuator",
             "/swagger-ui",
             "/v3/api-docs",
-            "/webjars"
-    );
+            "/webjars");
 
     /**
-     * Prefijos de ruta públicos solo para GET (lectura de catálogo, CMS y configuración).
+     * Prefijos de ruta públicos solo para GET (lectura de catálogo, CMS y
+     * configuración).
      */
     private static final List<String> PUBLIC_GET_PREFIXES = List.of(
             "/api/v1/products",
@@ -71,8 +76,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/config/languages",
             "/api/v1/config/currencies",
             "/api/v1/config/countries",
-            "/api/v1/shipping/options"
-    );
+            "/api/v1/shipping/options");
 
     private final JwtProperties jwtProperties;
 
