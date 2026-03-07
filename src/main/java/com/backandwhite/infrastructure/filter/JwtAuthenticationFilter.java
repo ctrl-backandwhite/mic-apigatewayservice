@@ -115,11 +115,19 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isPublicPath(String path, HttpMethod method) {
+        if (!isApiPath(path)) {
+            return true;
+        }
+
         if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
             return true;
         }
         return HttpMethod.GET.equals(method)
                 && PUBLIC_GET_PREFIXES.stream().anyMatch(path::startsWith);
+    }
+
+    private boolean isApiPath(String path) {
+        return "/api".equals(path) || path.startsWith("/api/");
     }
 
     private ServerHttpRequest buildEnrichedRequest(ServerHttpRequest request, TokenClaims claims) {
