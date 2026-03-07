@@ -11,7 +11,8 @@ import reactor.core.publisher.Mono;
 import java.util.Optional;
 
 /**
- * Filtro global de trazabilidad. Registra método, ruta, IP origen y código de respuesta
+ * Filtro global de trazabilidad. Registra método, ruta, IP origen y código de
+ * respuesta
  * con la duración de cada request que pasa por el gateway.
  * Se ejecuta ANTES del filtro JWT (orden -200 vs -100).
  */

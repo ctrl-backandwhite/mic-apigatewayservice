@@ -14,7 +14,9 @@ import java.util.List;
 /**
  * Configuración de seguridad WebFlux.
  *
- * <p>La autenticación JWT se delega completamente al {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
+ * <p>
+ * La autenticación JWT se delega completamente al
+ * {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
  * Spring Security solo gestiona CORS y deshabilita CSRF (API REST stateless).
  */
 @Configuration
@@ -37,8 +39,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
-                "https://*.backandwhite.com"
-        ));
+                "https://*.backandwhite.com",
+                "https://backandwhite.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "X-Request-Id"));

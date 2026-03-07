@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +40,7 @@ public class RouteSeeder implements ApplicationRunner {
         @Override
         public void run(ApplicationArguments args) {
                 routeRepository.count()
+                                .timeout(Duration.ofSeconds(8))
                                 .flatMap(count -> {
                                         if (count == 0) {
                                                 log.info("Gateway route table is empty. Seeding initial routes...");
@@ -47,7 +49,14 @@ public class RouteSeeder implements ApplicationRunner {
                                         log.info("Gateway routes already seeded ({} routes found). Skipping.", count);
                                         return Mono.empty();
                                 })
-                                .block();
+                                .onErrorResume(error -> {
+                                        log.error(
+                                                        "Unable to seed gateway routes at startup. Continuing without seeding. Cause: {}",
+                                                        error.getMessage(),
+                                                        error);
+                                        return Mono.empty();
+                                })
+                                .subscribe();
         }
 
         private Mono<Void> seedRoutes() {
