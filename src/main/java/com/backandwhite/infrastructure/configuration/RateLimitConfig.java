@@ -70,4 +70,18 @@ public class RateLimitConfig {
             return Mono.just(clientIp + ":" + path);
         };
     }
+
+    /**
+     * KeyResolver por defecto de Spring Cloud Gateway para RequestRateLimiter
+     * cuando una ruta no define explícitamente {@code key-resolver}.
+     *
+     * <p>
+     * Se alinea con {@link #ipKeyResolver()} para evitar claves vacías (por
+     * ejemplo, cuando no hay principal autenticado) que podrían terminar en
+     * respuestas 403 por {@code deny-empty-key}.
+     */
+    @Bean(name = "principalNameKeyResolver")
+    public KeyResolver principalNameKeyResolver() {
+        return ipKeyResolver();
+    }
 }
