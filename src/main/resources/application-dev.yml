@@ -1,18 +1,18 @@
 spring:
   # JDBC para Liquibase (migraciones DDL)
   datasource:
-    url: jdbc:postgresql://localhost:5432/micgateway
-    username: ${DB_USERNAME:dev_user}
-    password: ${DB_PASSWORD:dev_password}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/micgateway}
+    username: ${POSTGRES_USER:dev_user}
+    password: ${POSTGRES_PASSWORD:dev_password}
   # R2DBC para operaciones reactivas en runtime
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/micgateway
-    username: ${DB_USERNAME:dev_user}
-    password: ${DB_PASSWORD:dev_password}
+    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/micgateway}
+    username: ${POSTGRES_USER:dev_user}
+    password: ${POSTGRES_PASSWORD:dev_password}
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       timeout: 60000
 
 services:

@@ -4,6 +4,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import reactor.core.publisher.Mono;
 
@@ -56,6 +57,7 @@ public class RateLimitConfig {
      * independiente.
      */
     @Bean
+    @Primary
     public KeyResolver ipKeyResolver() {
         return exchange -> {
             String forwardedFor = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
