@@ -19,6 +19,16 @@ spring:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
       - "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
       - "org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration"
+  web:
+    resources:
+      add-mappings: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger/index.html
 
 logging:
   level:
