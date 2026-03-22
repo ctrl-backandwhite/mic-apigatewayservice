@@ -1,26 +1,38 @@
 spring:
-  # JDBC para Liquibase (migraciones DDL)
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/micgateway}
-    username: ${POSTGRES_USER:dev_user}
-    password: ${POSTGRES_PASSWORD:dev_password}
-  # R2DBC para operaciones reactivas en runtime
+    url: ${DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   r2dbc:
-    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/micgateway}
-    username: ${POSTGRES_USER:dev_user}
-    password: ${POSTGRES_PASSWORD:dev_password}
+    url: ${R2_DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  liquibase:
+    enabled: true
+  autoconfigure:
+    exclude:
+      - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: localhost
+      port: 6380
       timeout: 60000
 
+logging:
+  level:
+    liquibase: DEBUG
+    org.springframework.boot.autoconfigure.liquibase: DEBUG
+    com.zaxxer.hikari: INFO
+
+server:
+  port: 9000
+
 services:
-  config:
-    url: http://localhost:8081
+  auth:
+    url: https://auth-service-des.up.railway.app
 
 app:
   jwt:
-    secret: ${JWT_SECRET:dev-secret-key-change-me-in-production-must-be-256-bits}
-    expiration-ms: 3600000
+    secret: dev-secret-key-change-me-in-production-must-be-256-bits-long
+    expiration-ms: 86400000
     issuer: mic-iamservice

@@ -52,3 +52,6 @@ replay_pid*
 ### OS ###
 .DS_Store
 Thumbs.db
+
+docker-compose.yml
+Dockerfile
