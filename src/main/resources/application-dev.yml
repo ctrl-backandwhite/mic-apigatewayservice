@@ -9,14 +9,16 @@ spring:
     password: ${POSTGRES_PASSWORD}
   liquibase:
     enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yml
+    url: ${DATABASE_URL}
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   autoconfigure:
     exclude:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
-  data:
-    redis:
-      host: localhost
-      port: 6380
-      timeout: 60000
+      - "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
+      - "org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration"
 
 logging:
   level:
