@@ -40,7 +40,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
                 "https://*.backandwhite.com",
-                "https://backandwhite.com"));
+                "https://web-auth-des.up.railway.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "X-Request-Id"));
