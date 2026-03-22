@@ -12,15 +12,13 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:${PROFILES:local}}
   main:
     web-application-type: reactive
+  web:
+    resources:
+      add-mappings: false
   cloud:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - name: RequestRateLimiter
-          args:
-            key-resolver: "#{@ipKeyResolver}"
-            rate-limiter: "#{@redisRateLimiter}"
-            deny-empty-key: true
       routes: []
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yml
@@ -36,9 +34,9 @@ management:
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    enabled: false
   swagger-ui:
-    path: /swagger-ui.html
+    enabled: false
 
 app:
   jwt:

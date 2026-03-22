@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
@@ -17,7 +18,8 @@ import java.util.Map;
 /**
  * Manejador global de excepciones para el API Gateway (WebFlux).
  *
- * <p>Convierte las excepciones de dominio en respuestas HTTP estándar
+ * <p>
+ * Convierte las excepciones de dominio en respuestas HTTP estándar
  * de forma compatible con el modelo reactivo de Spring WebFlux.
  */
 @Log4j2
@@ -42,6 +44,16 @@ public class GatewayExceptionHandler {
         Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, "VE001", "Validation error");
         body.put("details", details);
         return Mono.just(body);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public Mono<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        log.debug("Response status exception: {} {}", status.value(), ex.getReason());
+        return Mono.just(errorBody(status, "GW" + status.value(), ex.getReason()));
     }
 
     @ExceptionHandler(Exception.class)

@@ -22,15 +22,16 @@ import java.util.Optional;
  * </ul>
  *
  * <p>
- * Los valores se pueden sobreescribir por ruta en application.yml mediante:
- * 
- * <pre>
- * filters:
- *   - name: RequestRateLimiter
- *     args:
- *       redis-rate-limiter.replenishRate: 20
- *       redis-rate-limiter.burstCapacity: 40
- * </pre>
+ * Cada ruta define sus propios valores de rate limit en la tabla
+ * {@code gateway_route} (columnas {@code rate_limit_replenish_rate},
+ * {@code rate_limit_burst_capacity}, {@code rate_limit_requested_tokens}).
+ * {@link com.backandwhite.infrastructure.repository.PostgresRouteDefinitionRepository}
+ * inyecta un {@code RequestRateLimiter} filter con esos valores por ruta.
+ * Rutas sin rate limit configurado no aplican limitación.
+ *
+ * <p>
+ * El bean {@link #redisRateLimiter()} define los valores por defecto del
+ * rate limiter. Los valores por ruta los sobreescriben automáticamente.
  */
 @Configuration
 @Profile("!test")

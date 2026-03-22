@@ -41,6 +41,15 @@ public class GatewayRouteEntity {
 
     private boolean enabled;
 
+    @Column("rate_limit_replenish_rate")
+    private Integer rateLimitReplenishRate;
+
+    @Column("rate_limit_burst_capacity")
+    private Integer rateLimitBurstCapacity;
+
+    @Column("rate_limit_requested_tokens")
+    private Integer rateLimitRequestedTokens;
+
     @CreatedDate
     @Column("created_at")
     private LocalDateTime createdAt;

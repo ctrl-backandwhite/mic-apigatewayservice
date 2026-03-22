@@ -30,8 +30,6 @@ server:
 services:
   config:
     url: http://localhost:6001
-  iam:
-    url: http://localhost:6002
 
 app:
   jwt:

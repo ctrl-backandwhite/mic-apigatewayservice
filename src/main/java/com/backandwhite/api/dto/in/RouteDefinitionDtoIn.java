@@ -12,7 +12,9 @@ import java.util.List;
 
 /**
  * DTO de entrada para registrar o actualizar una ruta dinámica en el gateway.
- * <p>Formato de predicates y filters: shortcut de Spring Cloud Gateway.
+ * <p>
+ * Formato de predicates y filters: shortcut de Spring Cloud Gateway.
+ * 
  * <pre>
  * {
  *   "id": "new-service",
@@ -42,4 +44,13 @@ public class RouteDefinitionDtoIn {
     private List<String> filters;
 
     private int order;
+
+    /** Tokens added per second. null = no rate limit on this route. */
+    private Integer rateLimitReplenishRate;
+
+    /** Maximum bucket capacity. null = no rate limit on this route. */
+    private Integer rateLimitBurstCapacity;
+
+    /** Tokens consumed per request. Defaults to 1. */
+    private Integer rateLimitRequestedTokens;
 }

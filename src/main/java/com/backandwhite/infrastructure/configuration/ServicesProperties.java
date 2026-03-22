@@ -7,24 +7,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Inyectadas desde application-{profile}.yml.
  * Usadas por el {@link com.backandwhite.infrastructure.seeder.RouteSeeder}
  * para sembrar las rutas iniciales en PostgreSQL.
+ *
+ * <p>
+ * Solo se declaran los servicios que se usan en el seeder.
+ * Si se agrega un nuevo servicio al seeder, añadir el campo aquí
+ * y su URL en los perfiles de configuración.
  */
 @ConfigurationProperties(prefix = "services")
 public record ServicesProperties(
-        Service config,
-        Service iam,
-        Service catalog,
-        Service customer,
-        Service tax,
-        Service inventory,
-        Service pricing,
-        Service shipping,
-        Service cart,
-        Service order,
-        Service payment,
-        Service notification,
-        Service cms,
-        Service media,
-        Service analytics
-) {
-    public record Service(String url) {}
+        Service config) {
+    public record Service(String url) {
+    }
 }

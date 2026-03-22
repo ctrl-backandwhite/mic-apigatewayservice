@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * Mapper manual entre {@link GatewayRouteEntity} y {@link GatewayRoute}.
- * Se implementa manualmente (no MapStruct) porque la conversión JSON ↔ List<String>
+ * Se implementa manualmente (no MapStruct) porque la conversión JSON ↔
+ * List<String>
  * requiere el ObjectMapper de Jackson.
  */
 @Log4j2
@@ -21,7 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GatewayRouteEntityMapper {
 
-    private static final TypeReference<List<String>> LIST_STRING_TYPE = new TypeReference<>() {};
+    private static final TypeReference<List<String>> LIST_STRING_TYPE = new TypeReference<>() {
+    };
 
     private final ObjectMapper objectMapper;
 
@@ -33,6 +35,9 @@ public class GatewayRouteEntityMapper {
                 .filters(parseJson(entity.getFilters()))
                 .order(entity.getOrder())
                 .enabled(entity.isEnabled())
+                .rateLimitReplenishRate(entity.getRateLimitReplenishRate())
+                .rateLimitBurstCapacity(entity.getRateLimitBurstCapacity())
+                .rateLimitRequestedTokens(entity.getRateLimitRequestedTokens())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -46,6 +51,9 @@ public class GatewayRouteEntityMapper {
                 .filters(toJson(route.getFilters() != null ? route.getFilters() : List.of()))
                 .order(route.getOrder())
                 .enabled(route.isEnabled())
+                .rateLimitReplenishRate(route.getRateLimitReplenishRate())
+                .rateLimitBurstCapacity(route.getRateLimitBurstCapacity())
+                .rateLimitRequestedTokens(route.getRateLimitRequestedTokens())
                 .createdAt(route.getCreatedAt())
                 .updatedAt(route.getUpdatedAt())
                 .build();

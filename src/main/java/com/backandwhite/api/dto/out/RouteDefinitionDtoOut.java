@@ -26,6 +26,9 @@ public class RouteDefinitionDtoOut {
     private List<String> filters;
     private int order;
     private boolean enabled;
+    private Integer rateLimitReplenishRate;
+    private Integer rateLimitBurstCapacity;
+    private Integer rateLimitRequestedTokens;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
