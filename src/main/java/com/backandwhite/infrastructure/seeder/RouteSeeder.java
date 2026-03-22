@@ -84,11 +84,18 @@ public class RouteSeeder implements ApplicationRunner {
                 List<GatewayRoute> routes = new ArrayList<>();
 
                 addRouteIfConfigured(routes, "auth-services", services.config(),
-                                List.of("Path=/api/v1/roles/**"),
+                                List.of(
+                                                "Path=/api/v1/roles/**",
+                                                "Path=/api/v1/users/**",
+                                                "Path=/api/v1/groups/**",
+                                                "Path=/api/v1/scopes/**",
+                                                "Path=/api/v1/grant-types/**",
+                                                "Path=/api/v1/redirect-uris/**",
+                                                "Path=/api/v1/oauth-clients/**"),
                                 0, 10, 20, 1);
                 addRouteIfConfigured(routes, "notificacion-services", services.config(),
-                        List.of("Path=/api/v1/example/**"),
-                        0, 10, 20, 1);
+                                List.of("Path=/api/v1/example/**"),
+                                0, 10, 20, 1);
 
                 routes.add(GatewayRoute.builder()
                                 .id("gateway-management")

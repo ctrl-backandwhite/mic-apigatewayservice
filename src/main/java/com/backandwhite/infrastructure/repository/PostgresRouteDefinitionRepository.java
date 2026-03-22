@@ -114,11 +114,35 @@ public class PostgresRouteDefinitionRepository implements RouteDefinitionReposit
         return filters;
     }
 
+    /**
+     * Converts stored predicate strings to {@link PredicateDefinition} objects.
+     *
+     * <p>
+     * Multiple {@code Path=} predicates are merged into a single one with
+     * comma-separated patterns so Spring Cloud Gateway applies <strong>OR</strong>
+     * logic instead of <strong>AND</strong>. Other predicate types are kept
+     * as-is.
+     */
     private List<PredicateDefinition> toPredicateDefinitions(List<String> predicates) {
-        if (predicates == null)
+        if (predicates == null || predicates.isEmpty()) {
             return List.of();
-        return predicates.stream()
-                .map(PredicateDefinition::new)
-                .toList();
+        }
+
+        List<String> pathPatterns = new ArrayList<>();
+        List<PredicateDefinition> others = new ArrayList<>();
+
+        for (String p : predicates) {
+            if (p.startsWith("Path=")) {
+                pathPatterns.add(p.substring("Path=".length()));
+            } else {
+                others.add(new PredicateDefinition(p));
+            }
+        }
+
+        List<PredicateDefinition> result = new ArrayList<>(others);
+        if (!pathPatterns.isEmpty()) {
+            result.addFirst(new PredicateDefinition("Path=" + String.join(",", pathPatterns)));
+        }
+        return result;
     }
 }
