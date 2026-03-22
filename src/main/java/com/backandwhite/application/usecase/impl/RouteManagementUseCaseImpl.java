@@ -33,8 +33,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         return routeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )));
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))));
     }
 
     @Override
@@ -48,8 +47,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         return routeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeRepository.update(route, id))
                 .doOnSuccess(updated -> publishRefreshEvent());
     }
@@ -59,8 +57,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         return routeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeRepository.delete(id))
                 .doOnSuccess(v -> publishRefreshEvent());
     }
@@ -70,8 +67,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         return routeRepository.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeRepository.toggleEnabled(id))
                 .doOnSuccess(updated -> publishRefreshEvent());
     }
