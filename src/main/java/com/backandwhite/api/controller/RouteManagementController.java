@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * API de gestión de rutas dinámicas del API Gateway.
  *
@@ -107,6 +110,24 @@ public class RouteManagementController {
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
         return routeManagementUseCase.delete(id)
                 .then(Mono.just(ResponseEntity.<Void>noContent().build()));
+    }
+
+    /**
+     * Elimina múltiples rutas en una sola operación.
+     * Las rutas que no existan se omiten silenciosamente.
+     *
+     * <pre>
+     * DELETE /api/v1/gateway/routes/bulk
+     * { "ids": ["route-1", "route-2", "route-3"] }
+     * </pre>
+     *
+     * @return cantidad de rutas efectivamente eliminadas.
+     */
+    @DeleteMapping("/bulk")
+    public Mono<ResponseEntity<Map<String, Long>>> bulkDelete(@RequestBody Map<String, List<String>> body) {
+        List<String> ids = body.getOrDefault("ids", List.of());
+        return routeManagementUseCase.bulkDelete(ids)
+                .map(deleted -> ResponseEntity.ok(Map.of("deleted", deleted)));
     }
 
     /**

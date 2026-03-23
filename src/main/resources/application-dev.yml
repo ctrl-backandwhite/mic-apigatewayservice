@@ -17,8 +17,12 @@ spring:
   autoconfigure:
     exclude:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
-      - "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
-      - "org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration"
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
   web:
     resources:
       add-mappings: true

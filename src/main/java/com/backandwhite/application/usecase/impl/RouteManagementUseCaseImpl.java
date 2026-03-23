@@ -8,6 +8,8 @@ import com.backandwhite.domain.repository.GatewayRouteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+
+import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -60,6 +62,18 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
                         Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeRepository.delete(id))
                 .doOnSuccess(v -> publishRefreshEvent());
+    }
+
+    @Override
+    public Mono<Long> bulkDelete(List<String> ids) {
+        return Flux.fromIterable(ids)
+                .flatMap(id -> routeRepository.findById(id)
+                        .flatMap(existing -> routeRepository.delete(id).thenReturn(id)), 1)
+                .count()
+                .doOnSuccess(count -> {
+                    if (count > 0)
+                        publishRefreshEvent();
+                });
     }
 
     @Override
