@@ -115,9 +115,13 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isPublicPath(String path, HttpMethod method) {
-        // TODO: temporarily allow all routes without JWT; re-enable token validation
-        // later
-        return true;
+        if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
+            return true;
+        }
+        if (HttpMethod.GET.equals(method) && PUBLIC_GET_PREFIXES.stream().anyMatch(path::startsWith)) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isApiPath(String path) {

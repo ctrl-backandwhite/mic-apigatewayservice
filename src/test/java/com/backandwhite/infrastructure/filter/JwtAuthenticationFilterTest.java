@@ -4,7 +4,6 @@ import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.jwt.JwtProperties;
 import com.backandwhite.provider.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,7 +69,6 @@ class JwtAuthenticationFilterTest {
                 verify(chain).filter(any());
         }
 
-        @Disabled("TODO: re-enable when JWT validation is restored")
         @Test
         void filter_withMissingAuthorizationHeader_shouldReturnUnauthorized() {
                 MockServerWebExchange exchange = MockServerWebExchange.from(
@@ -83,7 +81,6 @@ class JwtAuthenticationFilterTest {
                 verify(chain, never()).filter(any());
         }
 
-        @Disabled("TODO: re-enable when JWT validation is restored")
         @Test
         void filter_withInvalidBearerPrefix_shouldReturnUnauthorized() {
                 MockServerWebExchange exchange = MockServerWebExchange.from(
@@ -98,7 +95,6 @@ class JwtAuthenticationFilterTest {
                 verify(chain, never()).filter(any());
         }
 
-        @Disabled("TODO: re-enable when JWT validation is restored")
         @Test
         void filter_withExpiredToken_shouldReturnUnauthorized() {
                 String expiredToken = JwtTokenProvider.expiredToken("user@test.com");
@@ -114,7 +110,6 @@ class JwtAuthenticationFilterTest {
                 verify(chain, never()).filter(any());
         }
 
-        @Disabled("TODO: re-enable when JWT validation is restored")
         @Test
         void filter_withMalformedToken_shouldReturnUnauthorized() {
                 MockServerWebExchange exchange = MockServerWebExchange.from(
@@ -153,7 +148,6 @@ class JwtAuthenticationFilterTest {
                 verify(jwtProperties, never()).secret();
         }
 
-        @Disabled("TODO: re-enable when JWT validation is restored")
         @Test
         void filter_onPublicGetProductsPostWithoutToken_shouldReturnUnauthorized() {
                 // POST /api/v1/products requiere autenticación aunque GET sea público

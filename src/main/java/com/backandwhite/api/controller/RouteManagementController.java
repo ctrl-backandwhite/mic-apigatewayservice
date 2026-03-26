@@ -4,6 +4,7 @@ import com.backandwhite.api.dto.in.RouteDefinitionDtoIn;
 import com.backandwhite.api.dto.out.RouteDefinitionDtoOut;
 import com.backandwhite.api.mapper.RouteDefinitionDtoMapper;
 import com.backandwhite.application.usecase.RouteManagementUseCase;
+import com.backandwhite.domain.model.GatewayRoute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -107,6 +108,46 @@ public class RouteManagementController {
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
         return routeManagementUseCase.delete(id)
                 .then(Mono.just(ResponseEntity.<Void>noContent().build()));
+    }
+
+    /**
+     * Elimina múltiples rutas en una sola operación.
+     * Las rutas que no existan se omiten silenciosamente.
+     *
+     * <pre>
+     * DELETE /api/v1/gateway/routes/bulk
+     * { "ids": ["route-1", "route-2", "route-3"] }
+     * </pre>
+     *
+     * @return cantidad de rutas efectivamente eliminadas.
+     */
+    @DeleteMapping("/bulk")
+    public Mono<ResponseEntity<Map<String, Long>>> bulkDelete(@RequestBody Map<String, List<String>> body) {
+        List<String> ids = body.getOrDefault("ids", List.of());
+        return routeManagementUseCase.bulkDelete(ids)
+                .map(deleted -> ResponseEntity.ok(Map.of("deleted", deleted)));
+    }
+
+    /**
+     * Importa múltiples rutas de forma masiva. Las rutas cuyo id ya exista
+     * se omiten y se informan en el resultado.
+     *
+     * <pre>
+     * POST /api/v1/gateway/routes/bulk
+     * [
+     *   { "id": "svc-1", "uri": "http://localhost:8080", "predicates": ["Path=/api/v1/svc1/**"], "filters": [], "order": 0 },
+     *   { "id": "svc-2", "uri": "http://localhost:9090", "predicates": ["Path=/api/v1/svc2/**"], "filters": [], "order": 1 }
+     * ]
+     * </pre>
+     */
+    @PostMapping("/bulk")
+    public Mono<ResponseEntity<Map<String, Object>>> bulkImport(
+            @RequestBody List<@Valid RouteDefinitionDtoIn> dtos) {
+        List<GatewayRoute> routes = dtos.stream()
+                .map(mapper::toDomain)
+                .toList();
+        return routeManagementUseCase.bulkImport(routes)
+                .map(ResponseEntity::ok);
     }
 
     /**

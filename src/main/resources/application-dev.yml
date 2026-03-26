@@ -30,6 +30,10 @@ server:
 services:
   auth:
     url: https://auth-service-des.up.railway.app
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:}
+  catalog:
+    url: ${CATALOG_SERVICE_URL:}
 
 app:
   jwt:

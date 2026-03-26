@@ -8,6 +8,10 @@ import com.backandwhite.domain.repository.GatewayRouteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -74,6 +78,34 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
                 )))
                 .flatMap(existing -> routeRepository.toggleEnabled(id))
                 .doOnSuccess(updated -> publishRefreshEvent());
+    }
+
+    @Override
+    public Mono<Map<String, Object>> bulkImport(List<GatewayRoute> routes) {
+        List<String> skippedIds = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+
+        return Flux.fromIterable(routes)
+                .concatMap(route -> routeRepository.findById(route.getId())
+                        .flatMap(existing -> {
+                            skippedIds.add(route.getId());
+                            return Mono.<GatewayRoute>empty();
+                        })
+                        .switchIfEmpty(routeRepository.save(route)
+                                .onErrorResume(e -> {
+                                    errors.add(route.getId() + ": " + e.getMessage());
+                                    return Mono.empty();
+                                })))
+                .count()
+                .map(created -> {
+                    if (created > 0)
+                        publishRefreshEvent();
+                    return Map.<String, Object>of(
+                            "created", created.intValue(),
+                            "skipped", skippedIds.size(),
+                            "skippedIds", skippedIds,
+                            "errors", errors);
+                });
     }
 
     @Override

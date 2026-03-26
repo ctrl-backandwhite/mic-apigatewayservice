@@ -28,8 +28,12 @@ server:
   port: 9000
 
 services:
-  config:
+  auth:
     url: http://localhost:6001
+  notification:
+    url: http://localhost:6003
+  catalog:
+    url: http://localhost:6002
 
 app:
   jwt:

@@ -83,13 +83,29 @@ public class RouteSeeder implements ApplicationRunner {
         private List<GatewayRoute> buildInitialRoutes() {
                 List<GatewayRoute> routes = new ArrayList<>();
 
-                addRouteIfConfigured(routes, "auth-services", services.config(),
-                                List.of("Path=/api/v1/roles/**"),
+                addRouteIfConfigured(routes, "auth-service", services.auth(),
+                                List.of(
+                                                "Path=/api/v1/auth/**",
+                                                "Path=/api/v1/users/**",
+                                                "Path=/api/v1/roles/**",
+                                                "Path=/api/v1/groups/**",
+                                                "Path=/api/v1/scopes/**",
+                                                "Path=/api/v1/granttypes/**",
+                                                "Path=/api/v1/redirecturis/**",
+                                                "Path=/api/v1/oauthclients/**"),
                                 0, 10, 20, 1);
-                addRouteIfConfigured(routes, "notificacion-services", services.config(),
-                        List.of("Path=/api/v1/example/**"),
-                        0, 10, 20, 1);
 
+                addRouteIfConfigured(routes, "notification-service", services.notification(),
+                                List.of(
+                                                "Path=/api/v1/notifications/**",
+                                                "Path=/api/v1/notification-templates/**"),
+                                0, 10, 20, 1);
+
+                addRouteIfConfigured(routes, "catalog-service", services.catalog(),
+                                List.of(
+                                                "Path=/api/v1/categories/**",
+                                                "Path=/api/v1/products/**"),
+                                0, 10, 20, 1);
                 routes.add(GatewayRoute.builder()
                                 .id("gateway-management")
                                 .uri("forward:///")

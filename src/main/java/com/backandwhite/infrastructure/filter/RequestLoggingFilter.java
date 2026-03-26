@@ -26,9 +26,12 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
         String requestId = exchange.getRequest().getId();
         String method = exchange.getRequest().getMethod().name();
         String path = exchange.getRequest().getPath().value();
-        String remoteIp = Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                .map(addr -> addr.getAddress().getHostAddress())
-                .orElse("unknown");
+        String remoteIp = Optional.ofNullable(exchange.getRequest().getHeaders().getFirst("X-Forwarded-For"))
+                .map(xff -> xff.split(",")[0].trim())
+                .filter(ip -> !ip.isBlank())
+                .orElseGet(() -> Optional.ofNullable(exchange.getRequest().getRemoteAddress())
+                        .map(addr -> addr.getAddress().getHostAddress())
+                        .orElse("unknown"));
 
         log.info("[{}] --> {} {} from {}", requestId, method, path, remoteIp);
 

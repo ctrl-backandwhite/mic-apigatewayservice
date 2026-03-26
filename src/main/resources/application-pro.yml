@@ -1,5 +1,6 @@
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: framework
 
 spring:
   datasource:
@@ -29,5 +30,9 @@ spring:
     liquibase-schema: ${DB_SCHEMA:public}
 
 services:
-  config:
-    url: ${SERVICE_CONFIG_URL:}
+  auth:
+    url: ${AUTH_SERVICE_URL:}
+  notification:
+    url: ${NOTIFICATION_SERVICE_URL:}
+  catalog:
+    url: ${CATALOG_SERVICE_URL:}
