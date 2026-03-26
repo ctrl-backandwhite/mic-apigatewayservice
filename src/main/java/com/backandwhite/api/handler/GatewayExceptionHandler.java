@@ -1,4 +1,4 @@
-package com.backandwhite.infrastructure.handler;
+package com.backandwhite.api.handler;
 
 import com.backandwhite.common.exception.EntityNotFoundException;
 import lombok.extern.log4j.Log4j2;

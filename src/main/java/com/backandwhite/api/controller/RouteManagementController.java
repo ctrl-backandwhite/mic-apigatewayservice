@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * API de gestión de rutas dinámicas del API Gateway.
  *

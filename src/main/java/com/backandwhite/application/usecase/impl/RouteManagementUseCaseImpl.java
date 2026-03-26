@@ -81,6 +81,17 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     }
 
     @Override
+    public Mono<Long> bulkDelete(List<String> ids) {
+        return Flux.fromIterable(ids)
+                .flatMap(id -> routeRepository.delete(id).thenReturn(1L)
+                        .onErrorResume(e -> Mono.just(0L)))
+                .reduce(0L, Long::sum)
+                .doOnSuccess(deleted -> {
+                    if (deleted > 0) publishRefreshEvent();
+                });
+    }
+
+    @Override
     public Mono<Map<String, Object>> bulkImport(List<GatewayRoute> routes) {
         List<String> skippedIds = new ArrayList<>();
         List<String> errors = new ArrayList<>();

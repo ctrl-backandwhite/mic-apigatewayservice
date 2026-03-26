@@ -14,35 +14,11 @@ spring:
     enabled: false
 
 services:
-  config:
-    url: http://localhost:9999
-  iam:
-    url: http://localhost:9999
-  catalog:
-    url: http://localhost:9999
-  customer:
-    url: http://localhost:9999
-  tax:
-    url: http://localhost:9999
-  inventory:
-    url: http://localhost:9999
-  pricing:
-    url: http://localhost:9999
-  shipping:
-    url: http://localhost:9999
-  cart:
-    url: http://localhost:9999
-  order:
-    url: http://localhost:9999
-  payment:
+  auth:
     url: http://localhost:9999
   notification:
     url: http://localhost:9999
-  cms:
-    url: http://localhost:9999
-  media:
-    url: http://localhost:9999
-  analytics:
+  catalog:
     url: http://localhost:9999
 
 app:
