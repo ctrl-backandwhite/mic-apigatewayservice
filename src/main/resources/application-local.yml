@@ -15,7 +15,8 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6380
+      port: 6379
+      database: 3
       timeout: 60000
 
 logging:

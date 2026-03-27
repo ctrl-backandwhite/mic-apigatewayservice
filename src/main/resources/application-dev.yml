@@ -14,8 +14,9 @@ spring:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
   data:
     redis:
-      host: localhost
-      port: 6380
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:3}
       timeout: 60000
 
 logging:
@@ -25,18 +26,18 @@ logging:
     com.zaxxer.hikari: INFO
 
 server:
-  port: 9000
+  port: ${SERVER_PORT:9000}
 
 services:
   auth:
-    url: https://auth-service-des.up.railway.app
+    url: ${AUTH_SERVICE_URL}
   notification:
-    url: ${NOTIFICATION_SERVICE_URL:}
+    url: ${NOTIFICATION_SERVICE_URL}
   catalog:
-    url: ${CATALOG_SERVICE_URL:}
+    url: ${CATALOG_SERVICE_URL}
 
 app:
   jwt:
-    secret: dev-secret-key-change-me-in-production-must-be-256-bits-long
-    expiration-ms: 86400000
-    issuer: mic-iamservice
+    secret: ${JWT_SECRET:dev-secret-key-change-me-in-production-must-be-256-bits-long}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    issuer: ${JWT_ISSUER:mic-iamservice}

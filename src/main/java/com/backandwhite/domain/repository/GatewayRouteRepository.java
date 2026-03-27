@@ -25,4 +25,11 @@ public interface GatewayRouteRepository {
     Mono<GatewayRoute> toggleEnabled(String id);
 
     Mono<Long> count();
+
+    /**
+     * Inserta la ruta si no existe o actualiza uri, predicates, filters, order
+     * y rate-limit si ya existe. Preserva {@code enabled} y {@code createdAt}
+     * para no pisar cambios manuales del operador.
+     */
+    Mono<Void> upsert(GatewayRoute route);
 }

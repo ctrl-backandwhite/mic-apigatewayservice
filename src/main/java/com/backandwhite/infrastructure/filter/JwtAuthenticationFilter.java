@@ -54,6 +54,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
      * Rutas públicas (cualquier método HTTP).
      */
     private static final List<String> PUBLIC_PATHS = List.of(
+            "/oauth2/",
+            "/.well-known/",
             "/api/v1/granttypes",
             "/api/v1/auth/",
             "/api/v1/customers/register",

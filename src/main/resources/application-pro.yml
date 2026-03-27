@@ -1,38 +1,43 @@
-server:
-  port: ${SERVER_PORT:8080}
-  forward-headers-strategy: framework
-
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:${PGHOST:postgres-siio.railway.internal}}:${DB_PORT:${PGPORT:5432}}/${DB_NAME:${PGDATABASE:railway}}?currentSchema=${DB_SCHEMA:public}
-    username: ${DB_USERNAME:${PGUSER:postgres}}
-    password: ${DB_PASSWORD:${PGPASSWORD:}}
+    url: ${DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   r2dbc:
-    url: r2dbc:postgresql://${DB_HOST:${PGHOST:postgres-siio.railway.internal}}:${DB_PORT:${PGPORT:5432}}/${DB_NAME:${PGDATABASE:railway}}?schema=${DB_SCHEMA:public}
-    username: ${DB_USERNAME:${PGUSER:postgres}}
-    password: ${DB_PASSWORD:${PGPASSWORD:}}
-  data:
-    redis:
-      host: ${REDIS_HOST:redis.railway.internal}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      timeout: 60000
-      ssl:
-        enabled: ${REDIS_SSL_ENABLED:false}
+    url: ${R2_DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   liquibase:
     enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.yml
-    url: jdbc:postgresql://${DB_HOST:${PGHOST:postgres-siio.railway.internal}}:${DB_PORT:${PGPORT:5432}}/${DB_NAME:${PGDATABASE:railway}}?currentSchema=${DB_SCHEMA:public}
-    user: ${DB_USERNAME:${PGUSER:postgres}}
-    password: ${DB_PASSWORD:${PGPASSWORD:}}
-    driver-class-name: org.postgresql.Driver
-    default-schema: ${DB_SCHEMA:public}
-    liquibase-schema: ${DB_SCHEMA:public}
+  autoconfigure:
+    exclude:
+      - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:3}
+      timeout: 60000
+
+logging:
+  level:
+    liquibase: DEBUG
+    org.springframework.boot.autoconfigure.liquibase: DEBUG
+    com.zaxxer.hikari: INFO
+
+server:
+  port: ${SERVER_PORT:9000}
 
 services:
   auth:
-    url: ${AUTH_SERVICE_URL:}
+    url: ${AUTH_SERVICE_URL:https://auth-service-des.up.railway.app}
   notification:
     url: ${NOTIFICATION_SERVICE_URL:}
   catalog:
     url: ${CATALOG_SERVICE_URL:}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-key-change-me-in-production-must-be-256-bits-long}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    issuer: ${JWT_ISSUER:mic-iamservice}
