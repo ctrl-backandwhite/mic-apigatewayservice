@@ -166,7 +166,12 @@ public class RouteSeeder implements ApplicationRunner {
             log.warn("Skipping route '{}' — service URL not configured.", routeId);
             return;
         }
-        routes.add(route(routeId, service.url(), predicates, filters, order,
+        String url = service.url().strip();
+        if (url.isBlank()) {
+            log.warn("Skipping route '{}' — service URL is blank after stripping whitespace.", routeId);
+            return;
+        }
+        routes.add(route(routeId, url, predicates, filters, order,
                 replenishRate, burstCapacity, requestedTokens));
     }
 
