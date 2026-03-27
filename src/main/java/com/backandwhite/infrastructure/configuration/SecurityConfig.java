@@ -41,7 +41,8 @@ public class SecurityConfig {
                 "http://localhost:4200",
                 "http://localhost:9000",
                 "https://web-auth-des.up.railway.app",
-                "https://gateway-service-des.up.railway.app"));
+                "https://gateway-service-des.up.railway.app",
+                "https://nx036.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id"));
         config.setExposedHeaders(List.of("Authorization", "X-Request-Id"));
