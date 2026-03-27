@@ -17,7 +17,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record ServicesProperties(
         Service auth,
         Service notification,
-        Service catalog) {
+        Service catalog,
+        Service webapp) {
     public record Service(String url) {
     }
 }

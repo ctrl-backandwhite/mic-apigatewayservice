@@ -35,6 +35,8 @@ services:
     url: http://localhost:6003
   catalog:
     url: http://localhost:6002
+  webapp:
+    url: http://localhost:4200
 
 app:
   jwt:

@@ -19,7 +19,15 @@ spring:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
       routes: []
+      x-forwarded:
+        enabled: true
+        for-enabled: true
+        host-enabled: true
+        port-enabled: true
+        proto-enabled: true
+        prefix-enabled: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yml
 

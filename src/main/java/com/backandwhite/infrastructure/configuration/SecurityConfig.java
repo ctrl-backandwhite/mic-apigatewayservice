@@ -39,6 +39,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
+                "http://localhost:9000",
                 "https://web-auth-des.up.railway.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id"));
@@ -47,7 +48,12 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        // CORS solo aplica a rutas de API. Las páginas HTML del auth service
+        // (login, register, etc.) se acceden mediante navegación del browser
+        // (form submit nativo), no como peticiones XHR/fetch, por lo que no
+        // requieren CORS. Incluirlas provocaba 403 cuando Origin era null.
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/oauth2/**", config);
         return source;
     }
 }

@@ -30,11 +30,13 @@ server:
 
 services:
   auth:
-    url: ${AUTH_SERVICE_URL}
+    url: http://auth-service-des.railway.internal:8080
   notification:
-    url: ${NOTIFICATION_SERVICE_URL}
+    url: http://notification-service-des.railway.internal:8080
   catalog:
-    url: ${CATALOG_SERVICE_URL}
+    url: http://product-category-des.railway.internal:8080
+  webapp:
+    url: ${WEBAPP_URL:http://nx036-auth-des.railway.internal}
 
 app:
   jwt:
