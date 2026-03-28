@@ -39,6 +39,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
+                "http://localhost:5174",
                 "http://localhost:9000",
                 "https://web-auth-des.up.railway.app",
                 "https://gateway-service-des.up.railway.app",
