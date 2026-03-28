@@ -39,7 +39,7 @@ services:
   webapp:
     url: ${WEBAPP_URL:http://nx036-auth-des.railway.internal}
   ecommerce:
-    url: ${ECOMMERCE_URL:http://nx036-ecomerce.railway.internal}
+    url: ${ECOMMERCE_URL:http://nx036-ecomerce.railway.internal:8080}
 
 app:
   jwt:

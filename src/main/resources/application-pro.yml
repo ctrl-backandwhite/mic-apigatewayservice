@@ -38,7 +38,7 @@ services:
   webapp:
     url: ${WEBAPP_URL:}
   ecommerce:
-    url: ${ECOMMERCE_URL:http://nx036-ecomerce.railway.internal}
+    url: ${ECOMMERCE_URL:http://nx036-ecomerce.railway.internal:8080}
 
 app:
   jwt:
