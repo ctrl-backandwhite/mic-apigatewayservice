@@ -6,6 +6,7 @@ VALUES (
     '[]',
     100,
     TRUE
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 COMMENT ON TABLE gateway_route IS 'Rutas dinámicas del API Gateway. Modificables en caliente sin redeploy.';

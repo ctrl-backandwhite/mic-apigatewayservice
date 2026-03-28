@@ -18,7 +18,8 @@ public record ServicesProperties(
         Service auth,
         Service notification,
         Service catalog,
-        Service webapp) {
+        Service webapp,
+        Service ecommerce) {
     public record Service(String url) {
     }
 }

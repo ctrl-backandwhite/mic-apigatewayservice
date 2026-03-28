@@ -76,9 +76,13 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
         exchange.getResponse().setStatusCode(status);
 
         String accept = exchange.getRequest().getHeaders().getFirst(HttpHeaders.ACCEPT);
-        boolean wantsHtml = accept != null && accept.contains("text/html");
+        // Return HTML unless the client explicitly requests JSON only.
+        // Browsers send 'text/html,...' or '*/*'; API clients send 'application/json'.
+        boolean wantsJson = accept != null
+                && accept.contains("application/json")
+                && !accept.contains("text/html");
 
-        return wantsHtml
+        return !wantsJson
                 ? writeHtml(exchange, status.value(), message)
                 : writeJson(exchange, code, message);
     }

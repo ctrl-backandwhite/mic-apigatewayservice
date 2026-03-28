@@ -137,6 +137,11 @@ public class RouteSeeder implements ApplicationRunner {
                 .enabled(true)
                 .build());
 
+        // Catch-all: ecommerce SPA — must be last (highest order number)
+        addRouteIfConfigured(routes, "ecomerce-frontend", services.ecommerce(),
+                List.of("Path=/**"),
+                100, 0, 0, 0);
+
         return routes;
     }
 
