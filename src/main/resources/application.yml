@@ -29,7 +29,7 @@ spring:
         proto-enabled: true
         prefix-enabled: false
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yml
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
 management:
   endpoints:

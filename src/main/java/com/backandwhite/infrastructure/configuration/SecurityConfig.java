@@ -50,10 +50,10 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // CORS solo aplica a rutas de API. Las páginas HTML del auth service
-        // (login, register, etc.) se acceden mediante navegación del browser
-        // (form submit nativo), no como peticiones XHR/fetch, por lo que no
-        // requieren CORS. Incluirlas provocaba 403 cuando Origin era null.
+        // CORS para rutas de API gestionadas por controladores del gateway.
+        // Los errores de enrutamiento (404 sin ruta) son capturados por
+        // GatewayWebExceptionHandler, que inyecta las cabeceras CORS directamente,
+        // evitando así duplicar cabeceras en las respuestas de rutas proxificadas.
         source.registerCorsConfiguration("/api/**", config);
         source.registerCorsConfiguration("/oauth2/**", config);
         return source;

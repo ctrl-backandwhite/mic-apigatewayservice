@@ -1,5 +1,6 @@
 package com.backandwhite.api.handler;
 
+import com.backandwhite.api.dto.GatewayErrorResponseDto;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -11,9 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Manejador global de excepciones para el API Gateway (WebFlux).
@@ -21,6 +20,10 @@ import java.util.Map;
  * <p>
  * Convierte las excepciones de dominio en respuestas HTTP estándar
  * de forma compatible con el modelo reactivo de Spring WebFlux.
+ * Los errores de enrutamiento (e.g. 404 sin ruta) son interceptados
+ * por {@link GatewayWebExceptionHandler} antes de llegar aquí.
+ *
+ * @author NX036-ALFA
  */
 @Log4j2
 @RestControllerAdvice
@@ -28,47 +31,68 @@ public class GatewayExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
+    public Mono<GatewayErrorResponseDto> handleEntityNotFound(EntityNotFoundException ex) {
         log.warn("Entity not found: {}", ex.getMessage());
-        return Mono.just(errorBody(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage()));
+        return Mono.just(errorBody(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), List.of()));
     }
 
     @ExceptionHandler(WebExchangeBindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<Map<String, Object>> handleValidation(WebExchangeBindException ex) {
+    public Mono<GatewayErrorResponseDto> handleValidation(WebExchangeBindException ex) {
         log.warn("Validation error: {}", ex.getMessage());
         List<String> details = ex.getBindingResult().getAllErrors()
                 .stream()
                 .map(e -> e.getDefaultMessage())
                 .toList();
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, "VE001", "Validation error");
-        body.put("details", details);
-        return Mono.just(body);
+        return Mono.just(errorBody(HttpStatus.BAD_REQUEST, "VE001", "Error de validación.", details));
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public Mono<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+    public Mono<GatewayErrorResponseDto> handleResponseStatus(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
         if (status == null) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
-        log.debug("Response status exception: {} {}", status.value(), ex.getReason());
-        return Mono.just(errorBody(status, "GW" + status.value(), ex.getReason()));
+        String message = (ex.getReason() != null && !ex.getReason().isBlank())
+                ? ex.getReason()
+                : resolveDefaultMessage(status);
+        log.debug("Response status exception: {} — {}", status.value(), message);
+        return Mono.just(errorBody(status, "GW" + status.value(), message, List.of()));
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Mono<Map<String, Object>> handleGeneral(Exception ex) {
+    public Mono<GatewayErrorResponseDto> handleGeneral(Exception ex) {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
-        return Mono.just(errorBody(HttpStatus.INTERNAL_SERVER_ERROR, "IS001", "Internal server error"));
+        return Mono.just(errorBody(
+                HttpStatus.INTERNAL_SERVER_ERROR, "IS001",
+                "Ha ocurrido un error inesperado.", List.of()));
     }
 
-    private Map<String, Object> errorBody(HttpStatus status, String code, String message) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", ZonedDateTime.now().toString());
-        body.put("status", status.value());
-        body.put("code", code);
-        body.put("message", message);
-        return body;
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private GatewayErrorResponseDto errorBody(HttpStatus status, String code,
+            String message, List<String> details) {
+        return GatewayErrorResponseDto.builder()
+                .code(code)
+                .message(message)
+                .details(details)
+                .dateTime(ZonedDateTime.now())
+                .build();
+    }
+
+    private String resolveDefaultMessage(HttpStatus status) {
+        return switch (status) {
+            case NOT_FOUND -> "No se encontró el recurso solicitado.";
+            case UNAUTHORIZED -> "No autorizado. Por favor, inicia sesión.";
+            case FORBIDDEN -> "Acceso denegado. No tienes permisos suficientes.";
+            case BAD_REQUEST -> "Solicitud incorrecta.";
+            case METHOD_NOT_ALLOWED -> "Método HTTP no permitido.";
+            case TOO_MANY_REQUESTS -> "Demasiadas solicitudes. Por favor, espera un momento.";
+            case SERVICE_UNAVAILABLE -> "Servicio temporalmente no disponible.";
+            default -> "Ha ocurrido un error inesperado.";
+        };
     }
 }

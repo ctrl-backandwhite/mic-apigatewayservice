@@ -1,6 +1,3 @@
---liquibase formatted sql
-
---changeset Jesus.Finol:1
 CREATE TABLE IF NOT EXISTS gateway_route (
     id          VARCHAR(255)                NOT NULL,
     uri         VARCHAR(1000)               NOT NULL,
