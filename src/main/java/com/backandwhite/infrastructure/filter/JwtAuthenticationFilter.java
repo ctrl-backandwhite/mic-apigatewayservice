@@ -137,6 +137,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isPublicPath(String path, HttpMethod method) {
+        // Paths outside /api/** are public (static assets, SPA, auth pages, etc.)
+        if (!isApiPath(path)) {
+            return true;
+        }
         if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
             return true;
         }
