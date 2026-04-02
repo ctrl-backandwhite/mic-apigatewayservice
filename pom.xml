@@ -46,6 +46,27 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--
+                Override Spring Boot BOM to 4.0.5:
+                - mic-core parent imports spring-boot-dependencies:4.0.3 (Spring Framework 7.0.5)
+                - spring-security-web:7.0.4 calls StreamUtils.nonFlushing() added in spring-core:7.0.6
+                - spring-boot-dependencies:4.0.5 manages Spring Framework 7.0.6, fixing NoSuchMethodError.
+                - Also manages jackson-2-bom:2.21.2 → jackson-annotations:2.21.x, fixing JsonSerializeAs.
+                Child dependencyManagement takes precedence over parent.
+            -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>4.0.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Explicit pin as safety net -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.21</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>

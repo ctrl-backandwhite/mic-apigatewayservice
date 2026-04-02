@@ -117,7 +117,7 @@ public class RouteSeeder implements ApplicationRunner {
 
                 addRouteIfConfigured(routes, "webapp", services.webapp(),
                                 List.of("Path=/nexa-auth/**"),
-                                List.of("StripPrefix=1"),
+                                List.of(),
                                 -2, 0, 0, 0);
 
                 addRouteIfConfigured(routes, "notification-service", services.notification(),

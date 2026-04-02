@@ -35,8 +35,18 @@ services:
     url: http://localhost:6003
   catalog:
     url: http://localhost:6002
+  orders:
+    url: http://localhost:6005
+  cms:
+    url: http://localhost:6006
+  payments:
+    url: http://localhost:6007
+  userdetail:
+    url: http://localhost:6008
   webapp:
     url: http://localhost:4200
+  ecommerce:
+    url: http://localhost:5174
 
 app:
   jwt:
