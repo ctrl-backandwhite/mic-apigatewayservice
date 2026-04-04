@@ -37,9 +37,13 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        // Inyectar cabecera gateway→servicio en TODAS las peticiones
+        // Inyectar cabecera gateway→servicio en TODAS las peticiones.
+        // Eliminar Origin para evitar que los servicios downstream apliquen
+        // su propio filtro CORS: la validación CORS se gestiona únicamente
+        // en el gateway.
         ServerHttpRequest.Builder mutate = request.mutate()
-                .header(AppConstants.HEADER_NX036_AUTH, "gateway");
+                .header(AppConstants.HEADER_NX036_AUTH, "gateway")
+                .headers(h -> h.remove(HttpHeaders.ORIGIN));
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
