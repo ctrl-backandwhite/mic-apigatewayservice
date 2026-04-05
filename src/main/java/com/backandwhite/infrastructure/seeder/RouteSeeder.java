@@ -126,7 +126,7 @@ public class RouteSeeder implements ApplicationRunner {
                                 0, 10, 20, 1);
 
                 addRouteIfConfigured(routes, "catalog-service", services.catalog(),
-                                List.of("Path=/api/v1/categories/**,/api/v1/products/**"),
+                                List.of("Path=/api/v1/categories/**,/api/v1/products/**,/api/v1/reviews/**"),
                                 0, 10, 20, 1);
 
                 routes.add(GatewayRoute.builder()
