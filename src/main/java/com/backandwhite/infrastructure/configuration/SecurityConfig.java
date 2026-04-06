@@ -51,12 +51,12 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // CORS para rutas de API gestionadas por controladores del gateway.
-        // Los errores de enrutamiento (404 sin ruta) son capturados por
-        // GatewayWebExceptionHandler, que inyecta las cabeceras CORS directamente,
-        // evitando así duplicar cabeceras en las respuestas de rutas proxificadas.
-        source.registerCorsConfiguration("/api/**", config);
-        source.registerCorsConfiguration("/oauth2/**", config);
+        // Registrar CORS para todas las rutas: el gateway es el único punto
+        // de entrada y debe gestionar CORS de forma centralizada, tanto para
+        // rutas proxificadas como para controladores internos.
+        // El filtro DedupeResponseHeader (default-filters) elimina cabeceras
+        // duplicadas cuando el servicio downstream también incluye CORS.
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }

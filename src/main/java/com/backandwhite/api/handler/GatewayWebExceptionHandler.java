@@ -51,6 +51,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
 
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:4200",
+            "http://localhost:5174",
             "http://localhost:9000",
             "https://web-auth-des.up.railway.app",
             "https://gateway-service-des.up.railway.app",
@@ -124,10 +125,14 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
         String origin = exchange.getRequest().getHeaders().getFirst(HttpHeaders.ORIGIN);
         if (origin == null)
             return;
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        // Evitar duplicar si el CorsWebFilter de Spring Security ya las
+        // inyectó (para rutas que coinciden con el patrón CORS registrado).
+        if (headers.getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN) != null)
+            return;
         boolean allowed = ALLOWED_ORIGINS.stream()
                 .anyMatch(o -> o.equalsIgnoreCase(origin));
         if (allowed) {
-            HttpHeaders headers = exchange.getResponse().getHeaders();
             headers.set("Access-Control-Allow-Origin", origin);
             headers.set("Access-Control-Allow-Credentials", "true");
         }
