@@ -51,12 +51,15 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Registrar CORS para todas las rutas: el gateway es el único punto
-        // de entrada y debe gestionar CORS de forma centralizada, tanto para
-        // rutas proxificadas como para controladores internos.
-        // El filtro DedupeResponseHeader (default-filters) elimina cabeceras
-        // duplicadas cuando el servicio downstream también incluye CORS.
-        source.registerCorsConfiguration("/**", config);
+        // CORS solo para rutas que se invocan mediante fetch/XHR desde el
+        // frontend. Las rutas de navegación (/login, /logout, etc.) NO
+        // necesitan CORS porque son páginas server-rendered accedidas como
+        // navegación completa del navegador. Registrar /** provocaba que el
+        // CorsWebFilter validase el header Origin en form-POST de /login,
+        // devolviendo 403 antes de alcanzar el proxy.
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/oauth2/**", config);
+        source.registerCorsConfiguration("/.well-known/**", config);
         return source;
     }
 }
