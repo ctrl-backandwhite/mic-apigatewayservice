@@ -35,6 +35,8 @@ services:
     url: ${NOTIFICATION_SERVICE_URL:}
   catalog:
     url: ${CATALOG_SERVICE_URL:}
+  cms:
+    url: ${CMS_SERVICE_URL:}
   webapp:
     url: ${WEBAPP_URL:}
   ecommerce:

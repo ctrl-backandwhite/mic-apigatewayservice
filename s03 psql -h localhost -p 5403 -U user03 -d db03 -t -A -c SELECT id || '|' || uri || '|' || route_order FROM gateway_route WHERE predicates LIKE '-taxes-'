@@ -1,0 +1,6 @@
+       id        |          uri          |                                                                                                   predicates                                                                                                   | route_order 
+-----------------+-----------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------
+ order-service   | http://localhost:6005 | ["Path=/api/v1/orders/**,/api/v1/cart/**,/api/v1/coupons/**,/api/v1/shipping/**,/api/v1/taxes/**,/api/v1/tracking/**,/api/v1/returns/**,/api/v1/invoices/**"]                                                  |           0
+ catalog-service | http://localhost:6002 | ["Path=/api/v1/categories/**,/api/v1/products/**,/api/v1/reviews/**,/api/v1/attributes/**,/api/v1/brands/**,/api/v1/media/**,/api/v1/public/**,/api/v1/warranties/**,/api/v1/price-rules/**,/api/v1/taxes/**"] |           0
+(2 rows)
+
