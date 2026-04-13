@@ -9,6 +9,9 @@ spring:
     password: pass03
   liquibase:
     enabled: true
+    url: jdbc:postgresql://localhost:5403/db03
+    user: user03
+    password: pass03
   autoconfigure:
     exclude:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
@@ -32,15 +35,15 @@ services:
   auth:
     url: http://localhost:6001
   notification:
-    url: http://localhost:6003
+    url: http://localhost:6004
   catalog:
     url: http://localhost:6002
   orders:
     url: http://localhost:6005
-  cms:
-    url: http://localhost:6006
   payments:
     url: http://localhost:6007
+  cms:
+    url: http://localhost:6006
   userdetail:
     url: http://localhost:6008
   webapp:

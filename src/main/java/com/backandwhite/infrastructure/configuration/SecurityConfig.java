@@ -45,7 +45,8 @@ public class SecurityConfig {
                 "https://gateway-service-des.up.railway.app",
                 "https://nx036.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id", "X-Currency"));
+        config.setAllowedHeaders(
+                List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id", "X-Currency"));
         config.setExposedHeaders(List.of("Authorization", "X-Request-Id"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

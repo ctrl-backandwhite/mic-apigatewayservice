@@ -143,6 +143,23 @@ public class RouteSeeder implements ApplicationRunner {
                                                 + "/api/v1/contact/**"),
                                 0, 10, 20, 1);
 
+                // CJ webhook endpoints — no rate limit so CJ retries are not throttled
+                addRouteIfConfigured(routes, "orders-cj-webhook", services.orders(),
+                                List.of("Path=/api/v1/cj/webhook/**"),
+                                List.of(),
+                                -2, 0, 0, 0);
+
+                // Order service — all other authenticated order + shipping + tracking endpoints
+                addRouteIfConfigured(routes, "orders-service", services.orders(),
+                                List.of("Path=/api/v1/orders/**,"
+                                                + "/api/v1/cart/**,"
+                                                + "/api/v1/tracking/**,"
+                                                + "/api/v1/shipping/**,"
+                                                + "/api/v1/returns/**,"
+                                                + "/api/v1/invoices/**,"
+                                                + "/api/v1/admin/cj-orders/**"),
+                                0, 10, 20, 1);
+
                 routes.add(GatewayRoute.builder()
                                 .id("gateway-management")
                                 .uri("forward:///")

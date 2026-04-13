@@ -36,6 +36,10 @@ services:
     url: http://notification-service-des.railway.internal:8080
   catalog:
     url: http://product-category-des.railway.internal:8080
+  orders:
+    url: ${ORDERS_SERVICE_URL:http://order-service-des.railway.internal:8080}
+  payments:
+    url: ${PAYMENTS_SERVICE_URL:}
   cms:
     url: ${CMS_SERVICE_URL:http://cms-service-des.railway.internal:8080}
   webapp:
