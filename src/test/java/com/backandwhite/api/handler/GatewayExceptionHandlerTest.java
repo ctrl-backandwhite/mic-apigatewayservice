@@ -83,4 +83,76 @@ class GatewayExceptionHandlerTest {
             assertThat(dto.getDetails()).containsExactly("Route id is required", "Route URI is required");
         }).verifyComplete();
     }
+
+    @Test
+    void handleResponseStatus_withUnauthorized_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW401");
+            assertThat(dto.getMessage()).isEqualTo("No autorizado. Por favor, inicia sesión.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withForbidden_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.FORBIDDEN);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW403");
+            assertThat(dto.getMessage()).isEqualTo("Acceso denegado. No tienes permisos suficientes.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withBadRequest_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW400");
+            assertThat(dto.getMessage()).isEqualTo("Solicitud incorrecta.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withMethodNotAllowed_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW405");
+            assertThat(dto.getMessage()).isEqualTo("Método HTTP no permitido.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withTooManyRequests_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW429");
+            assertThat(dto.getMessage()).isEqualTo("Demasiadas solicitudes. Por favor, espera un momento.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withServiceUnavailable_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW503");
+            assertThat(dto.getMessage()).isNotBlank();
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withBlankReason_shouldUseDefaultMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND, "  ");
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW404");
+            assertThat(dto.getMessage()).isEqualTo("No se encontró el recurso solicitado.");
+        }).verifyComplete();
+    }
+
+    @Test
+    void handleResponseStatus_withDefaultStatus_shouldUseGenericMessage() {
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.CONFLICT);
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW409");
+            assertThat(dto.getMessage()).isEqualTo("Ha ocurrido un error inesperado.");
+        }).verifyComplete();
+    }
 }

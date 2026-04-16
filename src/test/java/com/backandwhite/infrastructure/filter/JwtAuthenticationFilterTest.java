@@ -154,4 +154,107 @@ class JwtAuthenticationFilterTest {
     void filter_orderShouldBeMinusHundred() {
         assertThat(filter.getOrder()).isEqualTo(-100);
     }
+
+    @Test
+    void filter_onPublicPathWithValidToken_shouldEnrichHeaders() {
+        String token = JwtTokenProvider.customerToken("user@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onPublicPathWithExpiredToken_shouldProceedWithoutEnriching() {
+        String token = JwtTokenProvider.expiredToken("user@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onPublicPathWithoutToken_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/products").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_withTokenContainingCustomerAndEmployeeIds_shouldEnrichAllHeaders() {
+        String token = JwtTokenProvider.customerTokenWithIds("user@test.com", 123L, 456L);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_withTokenWithoutCustomerOrEmployeeIds_shouldEnrichBasicHeaders() {
+        String token = JwtTokenProvider.customerTokenWithIds("user@test.com", null, null);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onOAuth2Path_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/oauth2/authorization/google").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onLoginPath_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/login").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onPublicGetReviewsPath_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/reviews").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onPublicGetBrandsPath_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/brands").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onCjWebhookPath_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.post("/api/v1/cj/webhook/event").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
 }

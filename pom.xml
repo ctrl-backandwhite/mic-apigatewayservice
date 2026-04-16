@@ -40,7 +40,7 @@
     </repositories>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
         <sonar.organization>ctrl-backandwhite</sonar.organization>
         <sonar.sources>src/main/java</sonar.sources>
@@ -293,6 +293,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>4.0.5</version>
                 <configuration>
                     <mainClass>com.backandwhite.MicGatewayserviceApplication</mainClass>
                 </configuration>

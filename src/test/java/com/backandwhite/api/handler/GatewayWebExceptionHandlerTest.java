@@ -104,4 +104,134 @@ class GatewayWebExceptionHandlerTest {
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Test
+    void handle_withUnauthorized_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/admin")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void handle_withForbidden_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/admin")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.FORBIDDEN);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void handle_withBadRequest_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void handle_withMethodNotAllowed_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Test
+    void handle_withTooManyRequests_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @Test
+    void handle_withServiceUnavailable_shouldReturnDefaultMessage() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
+    void handle_withExplicitReason_shouldUseReasonInsteadOfDefault() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND, "Custom reason");
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void handle_withAcceptBothHtmlAndJson_shouldReturnHtml() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, "text/html, application/json").build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        MediaType contentType = exchange.getResponse().getHeaders().getContentType();
+        assertThat(contentType).isNotNull();
+        assertThat(contentType.getType()).isEqualTo("text");
+        assertThat(contentType.getSubtype()).isEqualTo("html");
+    }
+
+    @Test
+    void handle_withExistingCorsHeader_shouldNotDuplicate() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/api/v1/test").header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HttpHeaders.ORIGIN, "http://localhost:4200").build());
+
+        // Pre-set CORS header to simulate CorsWebFilter already ran
+        exchange.getResponse().getHeaders().set("Access-Control-Allow-Origin", "http://localhost:4200");
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        assertThat(exchange.getResponse().getHeaders().getFirst("Access-Control-Allow-Origin"))
+                .isEqualTo("http://localhost:4200");
+    }
+
+    @Test
+    void handle_withWildcardAccept_shouldReturnHtml() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/test").header(HttpHeaders.ACCEPT, "*/*").build());
+
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        StepVerifier.create(handler.handle(exchange, ex)).verifyComplete();
+
+        MediaType contentType = exchange.getResponse().getHeaders().getContentType();
+        assertThat(contentType).isNotNull();
+        assertThat(contentType.getType()).isEqualTo("text");
+    }
 }

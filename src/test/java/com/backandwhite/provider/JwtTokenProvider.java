@@ -1,6 +1,7 @@
 package com.backandwhite.provider;
 
 import com.backandwhite.common.constants.AppConstants;
+import com.backandwhite.common.security.jwt.JwtProperties;
 import com.backandwhite.common.security.jwt.JwtUtils;
 import java.util.List;
 
@@ -27,5 +28,10 @@ public final class JwtTokenProvider {
 
     public static String expiredToken(String email) {
         return JwtUtils.generateToken(email, List.of(AppConstants.ROLE_CUSTOMER), TEST_SECRET, -1000L, TEST_ISSUER);
+    }
+
+    public static String customerTokenWithIds(String email, Long customerId, Long employeeId) {
+        JwtProperties props = new JwtProperties(TEST_SECRET, EXPIRATION_MS, TEST_ISSUER);
+        return JwtUtils.generateToken(email, email, List.of(AppConstants.ROLE_CUSTOMER), customerId, employeeId, props);
     }
 }
