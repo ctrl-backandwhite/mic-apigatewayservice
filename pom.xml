@@ -42,18 +42,11 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
+        <sonar.organization>ctrl-backandwhite</sonar.organization>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!--
-                Override Spring Boot BOM to 4.0.5:
-                - mic-core parent imports spring-boot-dependencies:4.0.3 (Spring Framework 7.0.5)
-                - spring-security-web:7.0.4 calls StreamUtils.nonFlushing() added in spring-core:7.0.6
-                - spring-boot-dependencies:4.0.5 manages Spring Framework 7.0.6, fixing NoSuchMethodError.
-                - Also manages jackson-2-bom:2.21.2 → jackson-annotations:2.21.x, fixing JsonSerializeAs.
-                Child dependencyManagement takes precedence over parent.
-            -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
