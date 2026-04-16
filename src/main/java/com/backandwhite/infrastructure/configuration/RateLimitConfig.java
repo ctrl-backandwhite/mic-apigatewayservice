@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.configuration;
 
+import java.util.Optional;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
@@ -7,8 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import reactor.core.publisher.Mono;
-
-import java.util.Optional;
 
 /**
  * Configuración del rate limiter basado en Redis.
@@ -26,12 +25,12 @@ import java.util.Optional;
  * {@code gateway_route} (columnas {@code rate_limit_replenish_rate},
  * {@code rate_limit_burst_capacity}, {@code rate_limit_requested_tokens}).
  * {@link com.backandwhite.infrastructure.repository.PostgresRouteDefinitionRepository}
- * inyecta un {@code RequestRateLimiter} filter con esos valores por ruta.
- * Rutas sin rate limit configurado no aplican limitación.
+ * inyecta un {@code RequestRateLimiter} filter con esos valores por ruta. Rutas
+ * sin rate limit configurado no aplican limitación.
  *
  * <p>
- * El bean {@link #redisRateLimiter()} define los valores por defecto del
- * rate limiter. Los valores por ruta los sobreescriben automáticamente.
+ * El bean {@link #redisRateLimiter()} define los valores por defecto del rate
+ * limiter. Los valores por ruta los sobreescriben automáticamente.
  */
 @Configuration
 @Profile("!test")
@@ -62,12 +61,10 @@ public class RateLimitConfig {
     public KeyResolver ipKeyResolver() {
         return exchange -> {
             String forwardedFor = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-            String clientIp = Optional.ofNullable(forwardedFor)
-                    .map(value -> value.split(",")[0].trim())
+            String clientIp = Optional.ofNullable(forwardedFor).map(value -> value.split(",")[0].trim())
                     .filter(value -> !value.isBlank())
                     .orElseGet(() -> Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                            .map(addr -> addr.getAddress().getHostAddress())
-                            .orElse("unknown"));
+                            .map(addr -> addr.getAddress().getHostAddress()).orElse("unknown"));
 
             String path = exchange.getRequest().getURI().getPath();
             return Mono.just(clientIp + ":" + path);

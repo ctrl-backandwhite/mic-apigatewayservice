@@ -2,6 +2,8 @@ package com.backandwhite.api.handler;
 
 import com.backandwhite.api.dto.GatewayErrorResponseDto;
 import com.backandwhite.common.exception.EntityNotFoundException;
+import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,17 +13,14 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-
 /**
  * Manejador global de excepciones para el API Gateway (WebFlux).
  *
  * <p>
- * Convierte las excepciones de dominio en respuestas HTTP estándar
- * de forma compatible con el modelo reactivo de Spring WebFlux.
- * Los errores de enrutamiento (e.g. 404 sin ruta) son interceptados
- * por {@link GatewayWebExceptionHandler} antes de llegar aquí.
+ * Convierte las excepciones de dominio en respuestas HTTP estándar de forma
+ * compatible con el modelo reactivo de Spring WebFlux. Los errores de
+ * enrutamiento (e.g. 404 sin ruta) son interceptados por
+ * {@link GatewayWebExceptionHandler} antes de llegar aquí.
  *
  * @author NX036-ALFA
  */
@@ -40,10 +39,7 @@ public class GatewayExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Mono<GatewayErrorResponseDto> handleValidation(WebExchangeBindException ex) {
         log.warn("Validation error: {}", ex.getMessage());
-        List<String> details = ex.getBindingResult().getAllErrors()
-                .stream()
-                .map(e -> e.getDefaultMessage())
-                .toList();
+        List<String> details = ex.getBindingResult().getAllErrors().stream().map(e -> e.getDefaultMessage()).toList();
         return Mono.just(errorBody(HttpStatus.BAD_REQUEST, "VE001", "Error de validación.", details));
     }
 
@@ -64,23 +60,17 @@ public class GatewayExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Mono<GatewayErrorResponseDto> handleGeneral(Exception ex) {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
-        return Mono.just(errorBody(
-                HttpStatus.INTERNAL_SERVER_ERROR, "IS001",
-                "Ha ocurrido un error inesperado.", List.of()));
+        return Mono.just(
+                errorBody(HttpStatus.INTERNAL_SERVER_ERROR, "IS001", "Ha ocurrido un error inesperado.", List.of()));
     }
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private GatewayErrorResponseDto errorBody(HttpStatus status, String code,
-            String message, List<String> details) {
-        return GatewayErrorResponseDto.builder()
-                .code(code)
-                .message(message)
-                .details(details)
-                .dateTime(ZonedDateTime.now())
-                .build();
+    private GatewayErrorResponseDto errorBody(HttpStatus status, String code, String message, List<String> details) {
+        return GatewayErrorResponseDto.builder().code(code).message(message).details(details)
+                .dateTime(ZonedDateTime.now()).build();
     }
 
     private String resolveDefaultMessage(HttpStatus status) {

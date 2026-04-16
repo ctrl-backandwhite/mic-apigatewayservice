@@ -1,8 +1,7 @@
 package com.backandwhite.testutil;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-
 import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 public class TestDatabaseCleaner {
 
@@ -13,8 +12,7 @@ public class TestDatabaseCleaner {
     }
 
     public void truncateAllTables() {
-        List<String> tables = jdbcTemplate.queryForList(
-                "SELECT tablename FROM pg_tables WHERE schemaname = 'public'",
+        List<String> tables = jdbcTemplate.queryForList("SELECT tablename FROM pg_tables WHERE schemaname = 'public'",
                 String.class);
         jdbcTemplate.execute("SET session_replication_role = 'replica';");
         for (String table : tables) {

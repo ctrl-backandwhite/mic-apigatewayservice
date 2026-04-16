@@ -17,12 +17,9 @@ public class TestSecurityConfig {
     @Bean
     @Primary
     public SecurityWebFilterChain testSecurityFilterChain(ServerHttpSecurity http) {
-        return http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+        return http.csrf(ServerHttpSecurity.CsrfSpec::disable).httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
-                .build();
+                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll()).build();
     }
 
     @Bean

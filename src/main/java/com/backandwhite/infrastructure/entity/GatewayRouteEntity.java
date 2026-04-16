@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.entity;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +12,9 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
-
 /**
- * Entidad R2DBC que representa una ruta del gateway en PostgreSQL.
- * Los predicates y filters se serializan como JSON (TEXT en base de datos).
+ * Entidad R2DBC que representa una ruta del gateway en PostgreSQL. Los
+ * predicates y filters se serializan como JSON (TEXT en base de datos).
  */
 @Data
 @With

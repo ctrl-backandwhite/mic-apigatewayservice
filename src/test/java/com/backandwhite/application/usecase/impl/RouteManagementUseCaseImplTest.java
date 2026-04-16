@@ -1,5 +1,13 @@
 package com.backandwhite.application.usecase.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.infrastructure.facade.GatewayRouteFacade;
@@ -12,14 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RouteManagementUseCaseImplTest {
@@ -48,8 +48,7 @@ class RouteManagementUseCaseImplTest {
     void findAll_whenEmpty_shouldReturnEmptyFlux() {
         when(routeFacade.findAll()).thenReturn(Flux.empty());
 
-        StepVerifier.create(useCase.findAll())
-                .verifyComplete();
+        StepVerifier.create(useCase.findAll()).verifyComplete();
     }
 
     @Test
@@ -57,12 +56,10 @@ class RouteManagementUseCaseImplTest {
         GatewayRoute route = RouteDefinitionProvider.getCatalogRoute();
         when(routeFacade.findById(RouteDefinitionProvider.ROUTE_ID_ONE)).thenReturn(Mono.just(route));
 
-        StepVerifier.create(useCase.findById(RouteDefinitionProvider.ROUTE_ID_ONE))
-                .assertNext(r -> {
-                    assertThat(r.getId()).isEqualTo(RouteDefinitionProvider.ROUTE_ID_ONE);
-                    assertThat(r.getUri()).isEqualTo(route.getUri());
-                })
-                .verifyComplete();
+        StepVerifier.create(useCase.findById(RouteDefinitionProvider.ROUTE_ID_ONE)).assertNext(r -> {
+            assertThat(r.getId()).isEqualTo(RouteDefinitionProvider.ROUTE_ID_ONE);
+            assertThat(r.getUri()).isEqualTo(route.getUri());
+        }).verifyComplete();
 
         verify(routeFacade).findById(RouteDefinitionProvider.ROUTE_ID_ONE);
     }
@@ -71,9 +68,7 @@ class RouteManagementUseCaseImplTest {
     void findById_whenNotFound_shouldReturnEntityNotFoundException() {
         when(routeFacade.findById(anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.findById("non-existent-route"))
-                .expectError(EntityNotFoundException.class)
-                .verify();
+        StepVerifier.create(useCase.findById("non-existent-route")).expectError(EntityNotFoundException.class).verify();
 
         verify(routeFacade).findById("non-existent-route");
     }
@@ -110,8 +105,7 @@ class RouteManagementUseCaseImplTest {
         when(routeFacade.findById(anyString())).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.update(RouteDefinitionProvider.getCatalogRoute(), "non-existent"))
-                .expectError(EntityNotFoundException.class)
-                .verify();
+                .expectError(EntityNotFoundException.class).verify();
 
         verify(routeFacade).findById(anyString());
         verify(routeFacade, never()).update(any(), anyString());
@@ -123,8 +117,7 @@ class RouteManagementUseCaseImplTest {
         when(routeFacade.findById(anyString())).thenReturn(Mono.just(route));
         when(routeFacade.delete(anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.delete(RouteDefinitionProvider.ROUTE_ID_ONE))
-                .verifyComplete();
+        StepVerifier.create(useCase.delete(RouteDefinitionProvider.ROUTE_ID_ONE)).verifyComplete();
 
         verify(routeFacade).findById(anyString());
         verify(routeFacade).delete(anyString());
@@ -134,9 +127,7 @@ class RouteManagementUseCaseImplTest {
     void delete_whenRouteNotFound_shouldReturnEntityNotFoundException() {
         when(routeFacade.findById(anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.delete("non-existent"))
-                .expectError(EntityNotFoundException.class)
-                .verify();
+        StepVerifier.create(useCase.delete("non-existent")).expectError(EntityNotFoundException.class).verify();
 
         verify(routeFacade).findById(anyString());
         verify(routeFacade, never()).delete(anyString());
@@ -150,8 +141,7 @@ class RouteManagementUseCaseImplTest {
         when(routeFacade.toggleEnabled(anyString())).thenReturn(Mono.just(toggled));
 
         StepVerifier.create(useCase.toggleEnabled(RouteDefinitionProvider.ROUTE_ID_ONE))
-                .assertNext(r -> assertThat(r.isEnabled()).isFalse())
-                .verifyComplete();
+                .assertNext(r -> assertThat(r.isEnabled()).isFalse()).verifyComplete();
 
         verify(routeFacade).findById(anyString());
         verify(routeFacade).toggleEnabled(anyString());
@@ -161,9 +151,7 @@ class RouteManagementUseCaseImplTest {
     void toggleEnabled_whenRouteNotFound_shouldReturnEntityNotFoundException() {
         when(routeFacade.findById(anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.toggleEnabled("non-existent"))
-                .expectError(EntityNotFoundException.class)
-                .verify();
+        StepVerifier.create(useCase.toggleEnabled("non-existent")).expectError(EntityNotFoundException.class).verify();
 
         verify(routeFacade).findById(anyString());
         verify(routeFacade, never()).toggleEnabled(anyString());
@@ -173,8 +161,7 @@ class RouteManagementUseCaseImplTest {
     void refresh_shouldPublishRefreshEventViaFacade() {
         doNothing().when(routeFacade).publishRefreshEvent();
 
-        StepVerifier.create(useCase.refresh())
-                .verifyComplete();
+        StepVerifier.create(useCase.refresh()).verifyComplete();
 
         verify(routeFacade).publishRefreshEvent();
     }

@@ -21,7 +21,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
-@Import({ TestcontainersConfiguration.class, TestSecurityConfig.class })
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @TestPropertySource(properties = "spring.liquibase.enabled=true")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -34,16 +34,13 @@ public abstract class BaseIntegration {
     protected WebTestClient webTestClient;
 
     static {
-        org.testcontainers.utility.TestcontainersConfiguration.getInstance()
-                .updateUserConfig("checks.disable", "true");
+        org.testcontainers.utility.TestcontainersConfiguration.getInstance().updateUserConfig("checks.disable", "true");
     }
 
     @BeforeEach
     public void setUpBase() {
         if (webTestClient == null) {
-            webTestClient = WebTestClient.bindToServer()
-                    .baseUrl("http://localhost:" + port)
-                    .build();
+            webTestClient = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
         }
     }
 
@@ -52,10 +49,8 @@ public abstract class BaseIntegration {
      */
     protected WebTestClient adminClient() {
         String token = JwtTokenProvider.adminToken("admin@test.com");
-        return WebTestClient.bindToServer()
-                .baseUrl("http://localhost:" + port)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .build();
+        return WebTestClient.bindToServer().baseUrl("http://localhost:" + port)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).build();
     }
 
     /**
@@ -63,9 +58,7 @@ public abstract class BaseIntegration {
      */
     protected WebTestClient customerClient() {
         String token = JwtTokenProvider.customerToken("customer@test.com");
-        return WebTestClient.bindToServer()
-                .baseUrl("http://localhost:" + port)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .build();
+        return WebTestClient.bindToServer().baseUrl("http://localhost:" + port)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).build();
     }
 }

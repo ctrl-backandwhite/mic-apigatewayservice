@@ -1,8 +1,16 @@
 package com.backandwhite.infrastructure.facade;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.domain.repository.GatewayRouteRepository;
 import com.backandwhite.provider.route.RouteDefinitionProvider;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,15 +20,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GatewayRouteFacadeTest {
@@ -88,8 +87,7 @@ class GatewayRouteFacadeTest {
     void delete_shouldRemoveAndPublishRefreshEvent() {
         when(routeRepository.delete(anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(facade.delete(RouteDefinitionProvider.ROUTE_ID_ONE))
-                .verifyComplete();
+        StepVerifier.create(facade.delete(RouteDefinitionProvider.ROUTE_ID_ONE)).verifyComplete();
 
         verify(routeRepository).delete(anyString());
         verify(eventPublisher).publishEvent(any());
@@ -101,8 +99,7 @@ class GatewayRouteFacadeTest {
         when(routeRepository.toggleEnabled(anyString())).thenReturn(Mono.just(toggled));
 
         StepVerifier.create(facade.toggleEnabled(RouteDefinitionProvider.ROUTE_ID_ONE))
-                .assertNext(r -> assertThat(r.isEnabled()).isFalse())
-                .verifyComplete();
+                .assertNext(r -> assertThat(r.isEnabled()).isFalse()).verifyComplete();
 
         verify(routeRepository).toggleEnabled(anyString());
         verify(eventPublisher).publishEvent(any());
@@ -113,8 +110,7 @@ class GatewayRouteFacadeTest {
         GatewayRoute route = RouteDefinitionProvider.getCatalogRoute();
         when(routeRepository.upsert(any(GatewayRoute.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(facade.upsert(route))
-                .verifyComplete();
+        StepVerifier.create(facade.upsert(route)).verifyComplete();
 
         verify(routeRepository).upsert(any(GatewayRoute.class));
     }
@@ -125,8 +121,7 @@ class GatewayRouteFacadeTest {
         GatewayRoute route2 = RouteDefinitionProvider.getOrderRoute();
         when(routeRepository.upsert(any(GatewayRoute.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(facade.upsertAll(List.of(route1, route2)))
-                .verifyComplete();
+        StepVerifier.create(facade.upsertAll(List.of(route1, route2))).verifyComplete();
 
         verify(routeRepository, times(2)).upsert(any(GatewayRoute.class));
         verify(eventPublisher).publishEvent(any());

@@ -2,20 +2,18 @@ package com.backandwhite.infrastructure.mapper;
 
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.infrastructure.entity.GatewayRouteEntity;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
- * Mapper manual entre {@link GatewayRouteEntity} y {@link GatewayRoute}.
- * Se implementa manualmente (no MapStruct) porque la conversión JSON ↔
- * List<String>
- * requiere el ObjectMapper de Jackson.
+ * Mapper manual entre {@link GatewayRouteEntity} y {@link GatewayRoute}. Se
+ * implementa manualmente (no MapStruct) porque la conversión JSON ↔
+ * List<String> requiere el ObjectMapper de Jackson.
  */
 @Log4j2
 @Component
@@ -28,35 +26,23 @@ public class GatewayRouteEntityMapper {
     private final ObjectMapper objectMapper;
 
     public GatewayRoute toDomain(GatewayRouteEntity entity) {
-        return GatewayRoute.builder()
-                .id(entity.getId())
-                .uri(entity.getUri())
-                .predicates(parseJson(entity.getPredicates()))
-                .filters(parseJson(entity.getFilters()))
-                .order(entity.getOrder())
-                .enabled(entity.isEnabled())
+        return GatewayRoute.builder().id(entity.getId()).uri(entity.getUri())
+                .predicates(parseJson(entity.getPredicates())).filters(parseJson(entity.getFilters()))
+                .order(entity.getOrder()).enabled(entity.isEnabled())
                 .rateLimitReplenishRate(entity.getRateLimitReplenishRate())
                 .rateLimitBurstCapacity(entity.getRateLimitBurstCapacity())
-                .rateLimitRequestedTokens(entity.getRateLimitRequestedTokens())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+                .rateLimitRequestedTokens(entity.getRateLimitRequestedTokens()).createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt()).build();
     }
 
     public GatewayRouteEntity toEntity(GatewayRoute route) {
-        return GatewayRouteEntity.builder()
-                .id(route.getId())
-                .uri(route.getUri())
+        return GatewayRouteEntity.builder().id(route.getId()).uri(route.getUri())
                 .predicates(toJson(route.getPredicates()))
-                .filters(toJson(route.getFilters() != null ? route.getFilters() : List.of()))
-                .order(route.getOrder())
-                .enabled(route.isEnabled())
-                .rateLimitReplenishRate(route.getRateLimitReplenishRate())
+                .filters(toJson(route.getFilters() != null ? route.getFilters() : List.of())).order(route.getOrder())
+                .enabled(route.isEnabled()).rateLimitReplenishRate(route.getRateLimitReplenishRate())
                 .rateLimitBurstCapacity(route.getRateLimitBurstCapacity())
-                .rateLimitRequestedTokens(route.getRateLimitRequestedTokens())
-                .createdAt(route.getCreatedAt())
-                .updatedAt(route.getUpdatedAt())
-                .build();
+                .rateLimitRequestedTokens(route.getRateLimitRequestedTokens()).createdAt(route.getCreatedAt())
+                .updatedAt(route.getUpdatedAt()).build();
     }
 
     private List<String> parseJson(String json) {

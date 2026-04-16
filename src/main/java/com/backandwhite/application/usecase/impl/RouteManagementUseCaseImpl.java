@@ -5,15 +5,14 @@ import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.infrastructure.facade.GatewayRouteFacade;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Service
@@ -32,8 +31,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     @Override
     public Mono<GatewayRoute> findById(String id) {
         return routeFacade.findById(id)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException(
-                        Message.ENTITY_NOT_FOUND.getCode(),
+                .switchIfEmpty(Mono.error(new EntityNotFoundException(Message.ENTITY_NOT_FOUND.getCode(),
                         Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))));
     }
 
@@ -45,8 +43,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     @Override
     public Mono<GatewayRoute> update(GatewayRoute route, String id) {
         return routeFacade.findById(id)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException(
-                        Message.ENTITY_NOT_FOUND.getCode(),
+                .switchIfEmpty(Mono.error(new EntityNotFoundException(Message.ENTITY_NOT_FOUND.getCode(),
                         Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeFacade.update(route, id));
     }
@@ -54,8 +51,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     @Override
     public Mono<Void> delete(String id) {
         return routeFacade.findById(id)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException(
-                        Message.ENTITY_NOT_FOUND.getCode(),
+                .switchIfEmpty(Mono.error(new EntityNotFoundException(Message.ENTITY_NOT_FOUND.getCode(),
                         Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeFacade.delete(id));
     }
@@ -63,8 +59,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     @Override
     public Mono<GatewayRoute> toggleEnabled(String id) {
         return routeFacade.findById(id)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException(
-                        Message.ENTITY_NOT_FOUND.getCode(),
+                .switchIfEmpty(Mono.error(new EntityNotFoundException(Message.ENTITY_NOT_FOUND.getCode(),
                         Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
                 .flatMap(existing -> routeFacade.toggleEnabled(id));
     }
@@ -72,10 +67,8 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     @Override
     public Mono<Long> bulkDelete(List<String> ids) {
         return Flux.fromIterable(ids)
-                .flatMap(id -> routeFacade.delete(id).thenReturn(1L)
-                        .onErrorResume(e -> Mono.just(0L)))
-                .reduce(0L, Long::sum)
-                .doOnSuccess(deleted -> {
+                .flatMap(id -> routeFacade.delete(id).thenReturn(1L).onErrorResume(e -> Mono.just(0L)))
+                .reduce(0L, Long::sum).doOnSuccess(deleted -> {
                     if (deleted > 0)
                         routeFacade.publishRefreshEvent();
                 });
@@ -86,27 +79,18 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         List<String> skippedIds = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
-        return Flux.fromIterable(routes)
-                .concatMap(route -> routeFacade.findById(route.getId())
-                        .flatMap(existing -> {
-                            skippedIds.add(route.getId());
-                            return Mono.<GatewayRoute>empty();
-                        })
-                        .switchIfEmpty(routeFacade.save(route)
-                                .onErrorResume(e -> {
-                                    errors.add(route.getId() + ": " + e.getMessage());
-                                    return Mono.empty();
-                                })))
-                .count()
-                .map(created -> {
-                    if (created > 0)
-                        routeFacade.publishRefreshEvent();
-                    return Map.<String, Object>of(
-                            "created", created.intValue(),
-                            "skipped", skippedIds.size(),
-                            "skippedIds", skippedIds,
-                            "errors", errors);
-                });
+        return Flux.fromIterable(routes).concatMap(route -> routeFacade.findById(route.getId()).flatMap(existing -> {
+            skippedIds.add(route.getId());
+            return Mono.<GatewayRoute>empty();
+        }).switchIfEmpty(routeFacade.save(route).onErrorResume(e -> {
+            errors.add(route.getId() + ": " + e.getMessage());
+            return Mono.empty();
+        }))).count().map(created -> {
+            if (created > 0)
+                routeFacade.publishRefreshEvent();
+            return Map.<String, Object>of("created", created.intValue(), "skipped", skippedIds.size(), "skippedIds",
+                    skippedIds, "errors", errors);
+        });
     }
 
     @Override

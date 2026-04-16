@@ -3,6 +3,9 @@ package com.backandwhite.api.handler;
 import com.backandwhite.api.dto.GatewayErrorResponseDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.annotation.Order;
@@ -15,10 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
-
-import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
-import java.util.List;
 
 /**
  * Manejador global de excepciones a nivel de enrutamiento del Gateway
@@ -35,8 +34,8 @@ import java.util.List;
  * autocontenida con el diseño de NX036 (sin dependencias externas).</li>
  * <li>En cualquier otro caso, devuelve {@link GatewayErrorResponseDto}
  * JSON.</li>
- * <li>Añade cabecera {@code Access-Control-Allow-Origin} cuando el origen
- * de la petición está en la lista de orígenes permitidos.</li>
+ * <li>Añade cabecera {@code Access-Control-Allow-Origin} cuando el origen de la
+ * petición está en la lista de orígenes permitidos.</li>
  * </ul>
  *
  * @author NX036-ALFA
@@ -49,13 +48,9 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
 
     private final ObjectMapper objectMapper;
 
-    private static final List<String> ALLOWED_ORIGINS = List.of(
-            "http://localhost:4200",
-            "http://localhost:5174",
-            "http://localhost:9000",
-            "https://web-auth-des.up.railway.app",
-            "https://gateway-service-des.up.railway.app",
-            "https://nx036.com");
+    private static final List<String> ALLOWED_ORIGINS = List.of("http://localhost:4200", "http://localhost:5174",
+            "http://localhost:9000", "https://web-auth-des.up.railway.app",
+            "https://gateway-service-des.up.railway.app", "https://nx036.com");
 
     // -------------------------------------------------------------------------
     // Handle
@@ -79,13 +74,9 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
         String accept = exchange.getRequest().getHeaders().getFirst(HttpHeaders.ACCEPT);
         // Return HTML unless the client explicitly requests JSON only.
         // Browsers send 'text/html,...' or '*/*'; API clients send 'application/json'.
-        boolean wantsJson = accept != null
-                && accept.contains("application/json")
-                && !accept.contains("text/html");
+        boolean wantsJson = accept != null && accept.contains("application/json") && !accept.contains("text/html");
 
-        return !wantsJson
-                ? writeHtml(exchange, status.value(), message)
-                : writeJson(exchange, code, message);
+        return !wantsJson ? writeHtml(exchange, status.value(), message) : writeJson(exchange, code, message);
     }
 
     // -------------------------------------------------------------------------
@@ -101,8 +92,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     }
 
     private String resolveMessage(Throwable ex, HttpStatus status) {
-        if (ex instanceof ResponseStatusException rse && rse.getReason() != null
-                && !rse.getReason().isBlank()) {
+        if (ex instanceof ResponseStatusException rse && rse.getReason() != null && !rse.getReason().isBlank()) {
             return rse.getReason();
         }
         return switch (status) {
@@ -130,8 +120,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
         // inyectó (para rutas que coinciden con el patrón CORS registrado).
         if (headers.getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN) != null)
             return;
-        boolean allowed = ALLOWED_ORIGINS.stream()
-                .anyMatch(o -> o.equalsIgnoreCase(origin));
+        boolean allowed = ALLOWED_ORIGINS.stream().anyMatch(o -> o.equalsIgnoreCase(origin));
         if (allowed) {
             headers.set("Access-Control-Allow-Origin", origin);
             headers.set("Access-Control-Allow-Credentials", "true");
@@ -143,12 +132,8 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     // -------------------------------------------------------------------------
 
     private Mono<Void> writeJson(ServerWebExchange exchange, String code, String message) {
-        GatewayErrorResponseDto dto = GatewayErrorResponseDto.builder()
-                .code(code)
-                .message(message)
-                .details(List.of())
-                .dateTime(ZonedDateTime.now())
-                .build();
+        GatewayErrorResponseDto dto = GatewayErrorResponseDto.builder().code(code).message(message).details(List.of())
+                .dateTime(ZonedDateTime.now()).build();
 
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
@@ -163,8 +148,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     }
 
     private Mono<Void> writeHtml(ServerWebExchange exchange, int statusCode, String message) {
-        exchange.getResponse().getHeaders().setContentType(
-                new MediaType("text", "html", StandardCharsets.UTF_8));
+        exchange.getResponse().getHeaders().setContentType(new MediaType("text", "html", StandardCharsets.UTF_8));
         String html = buildHtmlPage(statusCode, escapeHtml(message));
         byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
@@ -218,11 +202,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     private String escapeHtml(String input) {
         if (input == null)
             return "";
-        return input
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
+        return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
                 .replace("'", "&#39;");
     }
 }

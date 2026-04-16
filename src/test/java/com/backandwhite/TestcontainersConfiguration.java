@@ -13,9 +13,6 @@ public class TestcontainersConfiguration {
     @ServiceConnection
     public PostgreSQLContainer<?> postgresContainer() {
         return new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
-                .withDatabaseName("micgateway_test")
-                .withUsername("test")
-                .withPassword("test")
-                .withReuse(true);
+                .withDatabaseName("micgateway_test").withUsername("test").withPassword("test").withReuse(true);
     }
 }

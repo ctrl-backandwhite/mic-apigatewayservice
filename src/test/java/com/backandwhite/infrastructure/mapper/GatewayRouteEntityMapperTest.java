@@ -1,15 +1,14 @@
 package com.backandwhite.infrastructure.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.infrastructure.entity.GatewayRouteEntity;
-import tools.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 class GatewayRouteEntityMapperTest {
 
@@ -22,19 +21,10 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void toDomain_shouldMapEntityToDomain() {
-        GatewayRouteEntity entity = GatewayRouteEntity.builder()
-                .id("test-route")
-                .uri("http://localhost:8080")
-                .predicates("[\"Path=/api/v1/test/**\"]")
-                .filters("[\"StripPrefix=1\"]")
-                .order(0)
-                .enabled(true)
-                .rateLimitReplenishRate(10)
-                .rateLimitBurstCapacity(20)
-                .rateLimitRequestedTokens(1)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
+                .predicates("[\"Path=/api/v1/test/**\"]").filters("[\"StripPrefix=1\"]").order(0).enabled(true)
+                .rateLimitReplenishRate(10).rateLimitBurstCapacity(20).rateLimitRequestedTokens(1)
+                .createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).build();
 
         GatewayRoute domain = mapper.toDomain(entity);
 
@@ -51,14 +41,8 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void toDomain_withNullPredicatesAndFilters_shouldReturnEmptyLists() {
-        GatewayRouteEntity entity = GatewayRouteEntity.builder()
-                .id("test-route")
-                .uri("http://localhost:8080")
-                .predicates(null)
-                .filters(null)
-                .order(0)
-                .enabled(true)
-                .build();
+        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
+                .predicates(null).filters(null).order(0).enabled(true).build();
 
         GatewayRoute domain = mapper.toDomain(entity);
 
@@ -68,14 +52,8 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void toDomain_withInvalidJson_shouldReturnEmptyLists() {
-        GatewayRouteEntity entity = GatewayRouteEntity.builder()
-                .id("test-route")
-                .uri("http://localhost:8080")
-                .predicates("not-valid-json")
-                .filters("{invalid}")
-                .order(0)
-                .enabled(true)
-                .build();
+        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
+                .predicates("not-valid-json").filters("{invalid}").order(0).enabled(true).build();
 
         GatewayRoute domain = mapper.toDomain(entity);
 
@@ -85,19 +63,10 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void toEntity_shouldMapDomainToEntity() {
-        GatewayRoute domain = GatewayRoute.builder()
-                .id("test-route")
-                .uri("http://localhost:8080")
-                .predicates(List.of("Path=/api/v1/test/**"))
-                .filters(List.of("StripPrefix=1"))
-                .order(0)
-                .enabled(true)
-                .rateLimitReplenishRate(10)
-                .rateLimitBurstCapacity(20)
-                .rateLimitRequestedTokens(1)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        GatewayRoute domain = GatewayRoute.builder().id("test-route").uri("http://localhost:8080")
+                .predicates(List.of("Path=/api/v1/test/**")).filters(List.of("StripPrefix=1")).order(0).enabled(true)
+                .rateLimitReplenishRate(10).rateLimitBurstCapacity(20).rateLimitRequestedTokens(1)
+                .createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).build();
 
         GatewayRouteEntity entity = mapper.toEntity(domain);
 
@@ -111,14 +80,8 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void toEntity_withNullFilters_shouldReturnEmptyJsonArray() {
-        GatewayRoute domain = GatewayRoute.builder()
-                .id("test-route")
-                .uri("http://localhost:8080")
-                .predicates(List.of("Path=/api/**"))
-                .filters(null)
-                .order(0)
-                .enabled(true)
-                .build();
+        GatewayRoute domain = GatewayRoute.builder().id("test-route").uri("http://localhost:8080")
+                .predicates(List.of("Path=/api/**")).filters(null).order(0).enabled(true).build();
 
         GatewayRouteEntity entity = mapper.toEntity(domain);
 
@@ -127,17 +90,10 @@ class GatewayRouteEntityMapperTest {
 
     @Test
     void roundTrip_shouldPreserveData() {
-        GatewayRoute original = GatewayRoute.builder()
-                .id("round-trip")
-                .uri("http://localhost:9090")
+        GatewayRoute original = GatewayRoute.builder().id("round-trip").uri("http://localhost:9090")
                 .predicates(List.of("Path=/api/v1/round/**", "Method=GET,POST"))
-                .filters(List.of("StripPrefix=1", "AddRequestHeader=X-Test, value"))
-                .order(5)
-                .enabled(false)
-                .rateLimitReplenishRate(5)
-                .rateLimitBurstCapacity(10)
-                .rateLimitRequestedTokens(2)
-                .build();
+                .filters(List.of("StripPrefix=1", "AddRequestHeader=X-Test, value")).order(5).enabled(false)
+                .rateLimitReplenishRate(5).rateLimitBurstCapacity(10).rateLimitRequestedTokens(2).build();
 
         GatewayRouteEntity entity = mapper.toEntity(original);
         GatewayRoute restored = mapper.toDomain(entity);
