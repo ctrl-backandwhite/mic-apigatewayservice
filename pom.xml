@@ -43,10 +43,9 @@
         <java.version>21</java.version>
         <spring-cloud.version>2025.1.0</spring-cloud.version>
         <sonar.organization>ctrl-backandwhite</sonar.organization>
-        <sonar.organization>ctrl-backandwhite</sonar.organization>
         <sonar.sources>src/main/java</sonar.sources>
         <sonar.tests>src/test/java</sonar.tests>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml,${project.basedir}/target/site/jacoco-it/jacoco.xml,${project.basedir}/target/site/jacoco-merged/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -63,6 +62,15 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
                 <version>2.21</version>
+            </dependency>
+            <!-- Fix Snyk CVEs: SNYK-JAVA-ORGBOUNCYCASTLE-16074612 (Timing Attack),
+                 SNYK-JAVA-ORGBOUNCYCASTLE-16075254 (LDAP Injection),
+                 SNYK-JAVA-ORGBOUNCYCASTLE-16075266 (Broken Crypto).
+                 Transitive via spring-cloud-starter → bcprov-jdk18on 1.81. Fixed in 1.84. -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.84</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
@@ -214,17 +222,67 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.14</version>
                 <executions>
+                    <!-- Unit tests agent -->
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+                    <!-- Unit tests report -->
                     <execution>
                         <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <!-- Integration tests agent -->
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <!-- Integration tests report -->
+                    <execution>
+                        <id>report-integration</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                    </execution>
+                    <!-- Merged (UT + IT) report -->
+                    <execution>
+                        <id>merge</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>merge</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>jacoco.exec</include>
+                                        <include>jacoco-it.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report-merged</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-merged</outputDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

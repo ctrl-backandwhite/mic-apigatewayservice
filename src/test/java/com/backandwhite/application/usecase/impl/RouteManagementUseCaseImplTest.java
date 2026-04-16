@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +14,8 @@ import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.domain.model.GatewayRoute;
 import com.backandwhite.infrastructure.facade.GatewayRouteFacade;
 import com.backandwhite.provider.route.RouteDefinitionProvider;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -164,5 +168,101 @@ class RouteManagementUseCaseImplTest {
         StepVerifier.create(useCase.refresh()).verifyComplete();
 
         verify(routeFacade).publishRefreshEvent();
+    }
+
+    // ------------------------------------------------------------------
+    // bulkDelete
+    // ------------------------------------------------------------------
+
+    @Test
+    void bulkDelete_shouldDeleteAllAndPublishRefresh() {
+        doNothing().when(routeFacade).publishRefreshEvent();
+        when(routeFacade.delete("r1")).thenReturn(Mono.empty());
+        when(routeFacade.delete("r2")).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.bulkDelete(List.of("r1", "r2")))
+                .assertNext(deleted -> assertThat(deleted).isEqualTo(2L)).verifyComplete();
+
+        verify(routeFacade, times(2)).delete(anyString());
+        verify(routeFacade).publishRefreshEvent();
+    }
+
+    @Test
+    void bulkDelete_whenAllFail_shouldReturn0AndNotRefresh() {
+        when(routeFacade.delete("r1")).thenReturn(Mono.error(new RuntimeException("fail")));
+
+        StepVerifier.create(useCase.bulkDelete(List.of("r1"))).assertNext(deleted -> assertThat(deleted).isEqualTo(0L))
+                .verifyComplete();
+
+        verify(routeFacade, never()).publishRefreshEvent();
+    }
+
+    @Test
+    void bulkDelete_withEmptyList_shouldReturn0() {
+        StepVerifier.create(useCase.bulkDelete(List.of())).assertNext(deleted -> assertThat(deleted).isEqualTo(0L))
+                .verifyComplete();
+    }
+
+    // ------------------------------------------------------------------
+    // bulkImport
+    // ------------------------------------------------------------------
+
+    @Test
+    void bulkImport_shouldCreateNewAndSkipExisting() {
+        GatewayRoute newRoute = RouteDefinitionProvider.getCatalogRoute();
+        GatewayRoute existingRoute = RouteDefinitionProvider.getOrderRoute();
+        doNothing().when(routeFacade).publishRefreshEvent();
+
+        when(routeFacade.findById(newRoute.getId())).thenReturn(Mono.empty());
+        when(routeFacade.save(newRoute)).thenReturn(Mono.just(newRoute));
+        when(routeFacade.findById(existingRoute.getId())).thenReturn(Mono.just(existingRoute));
+        // switchIfEmpty evaluates the argument eagerly; stub to avoid NPE
+        lenient().when(routeFacade.save(existingRoute)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.bulkImport(List.of(newRoute, existingRoute))).assertNext(result -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = result;
+            assertThat(map.get("created")).isEqualTo(1);
+            assertThat(map.get("skipped")).isEqualTo(1);
+        }).verifyComplete();
+
+        verify(routeFacade).save(newRoute);
+        verify(routeFacade).publishRefreshEvent();
+    }
+
+    @Test
+    void bulkImport_whenAllExist_shouldSkipAllAndNotRefresh() {
+        GatewayRoute route = RouteDefinitionProvider.getCatalogRoute();
+        when(routeFacade.findById(route.getId())).thenReturn(Mono.just(route));
+        // switchIfEmpty evaluates the argument eagerly; stub to avoid NPE
+        lenient().when(routeFacade.save(route)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.bulkImport(List.of(route))).assertNext(result -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = result;
+            assertThat(map.get("created")).isEqualTo(0);
+            assertThat(map.get("skipped")).isEqualTo(1);
+        }).verifyComplete();
+
+        // Note: routeFacade.save() is invoked eagerly by switchIfEmpty to build the
+        // Mono chain, but it is NOT subscribed to. We only verify the result.
+        verify(routeFacade, never()).publishRefreshEvent();
+    }
+
+    @Test
+    void bulkImport_whenSaveFails_shouldRecordError() {
+        GatewayRoute route = RouteDefinitionProvider.getCatalogRoute();
+        when(routeFacade.findById(route.getId())).thenReturn(Mono.empty());
+        when(routeFacade.save(route)).thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(useCase.bulkImport(List.of(route))).assertNext(result -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = result;
+            assertThat(map.get("created")).isEqualTo(0);
+            @SuppressWarnings("unchecked")
+            List<String> errors = (List<String>) map.get("errors");
+            assertThat(errors).hasSize(1);
+            assertThat(errors.getFirst()).contains("DB error");
+        }).verifyComplete();
     }
 }
