@@ -4,18 +4,16 @@ import com.backandwhite.application.usecase.RouteManagementUseCase;
 import com.backandwhite.common.exception.EntityNotFoundException;
 import com.backandwhite.common.exception.Message;
 import com.backandwhite.domain.model.GatewayRoute;
-import com.backandwhite.domain.repository.GatewayRouteRepository;
+import com.backandwhite.infrastructure.facade.GatewayRouteFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Log4j2
 @Service
@@ -24,70 +22,62 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
 
     private static final String ENTITY_NAME = "GatewayRoute";
 
-    private final GatewayRouteRepository routeRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final GatewayRouteFacade routeFacade;
 
     @Override
     public Flux<GatewayRoute> findAll() {
-        return routeRepository.findAll();
+        return routeFacade.findAll();
     }
 
     @Override
     public Mono<GatewayRoute> findById(String id) {
-        return routeRepository.findById(id)
+        return routeFacade.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )));
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))));
     }
 
     @Override
     public Mono<GatewayRoute> create(GatewayRoute route) {
-        return routeRepository.save(route)
-                .doOnSuccess(saved -> publishRefreshEvent());
+        return routeFacade.save(route);
     }
 
     @Override
     public Mono<GatewayRoute> update(GatewayRoute route, String id) {
-        return routeRepository.findById(id)
+        return routeFacade.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
-                .flatMap(existing -> routeRepository.update(route, id))
-                .doOnSuccess(updated -> publishRefreshEvent());
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
+                .flatMap(existing -> routeFacade.update(route, id));
     }
 
     @Override
     public Mono<Void> delete(String id) {
-        return routeRepository.findById(id)
+        return routeFacade.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
-                .flatMap(existing -> routeRepository.delete(id))
-                .doOnSuccess(v -> publishRefreshEvent());
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
+                .flatMap(existing -> routeFacade.delete(id));
     }
 
     @Override
     public Mono<GatewayRoute> toggleEnabled(String id) {
-        return routeRepository.findById(id)
+        return routeFacade.findById(id)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException(
                         Message.ENTITY_NOT_FOUND.getCode(),
-                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id)
-                )))
-                .flatMap(existing -> routeRepository.toggleEnabled(id))
-                .doOnSuccess(updated -> publishRefreshEvent());
+                        Message.ENTITY_NOT_FOUND.format(ENTITY_NAME, id))))
+                .flatMap(existing -> routeFacade.toggleEnabled(id));
     }
 
     @Override
     public Mono<Long> bulkDelete(List<String> ids) {
         return Flux.fromIterable(ids)
-                .flatMap(id -> routeRepository.delete(id).thenReturn(1L)
+                .flatMap(id -> routeFacade.delete(id).thenReturn(1L)
                         .onErrorResume(e -> Mono.just(0L)))
                 .reduce(0L, Long::sum)
                 .doOnSuccess(deleted -> {
-                    if (deleted > 0) publishRefreshEvent();
+                    if (deleted > 0)
+                        routeFacade.publishRefreshEvent();
                 });
     }
 
@@ -97,12 +87,12 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
         List<String> errors = new ArrayList<>();
 
         return Flux.fromIterable(routes)
-                .concatMap(route -> routeRepository.findById(route.getId())
+                .concatMap(route -> routeFacade.findById(route.getId())
                         .flatMap(existing -> {
                             skippedIds.add(route.getId());
                             return Mono.<GatewayRoute>empty();
                         })
-                        .switchIfEmpty(routeRepository.save(route)
+                        .switchIfEmpty(routeFacade.save(route)
                                 .onErrorResume(e -> {
                                     errors.add(route.getId() + ": " + e.getMessage());
                                     return Mono.empty();
@@ -110,7 +100,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
                 .count()
                 .map(created -> {
                     if (created > 0)
-                        publishRefreshEvent();
+                        routeFacade.publishRefreshEvent();
                     return Map.<String, Object>of(
                             "created", created.intValue(),
                             "skipped", skippedIds.size(),
@@ -121,11 +111,6 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
 
     @Override
     public Mono<Void> refresh() {
-        return Mono.fromRunnable(this::publishRefreshEvent);
-    }
-
-    private void publishRefreshEvent() {
-        eventPublisher.publishEvent(new RefreshRoutesEvent(this));
-        log.info("Gateway routes refresh event published.");
+        return Mono.fromRunnable(routeFacade::publishRefreshEvent);
     }
 }

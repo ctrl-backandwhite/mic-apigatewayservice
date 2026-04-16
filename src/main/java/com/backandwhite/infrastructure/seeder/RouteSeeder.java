@@ -1,17 +1,14 @@
 package com.backandwhite.infrastructure.seeder;
 
 import com.backandwhite.domain.model.GatewayRoute;
-import com.backandwhite.domain.repository.GatewayRouteRepository;
 import com.backandwhite.infrastructure.configuration.ServicesProperties;
+import com.backandwhite.infrastructure.facade.GatewayRouteFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -42,9 +39,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RouteSeeder implements ApplicationRunner {
 
-        private final GatewayRouteRepository routeRepository;
+        private final GatewayRouteFacade routeFacade;
         private final ServicesProperties services;
-        private final ApplicationEventPublisher eventPublisher;
 
         @Override
         public void run(ApplicationArguments args) {
@@ -69,13 +65,7 @@ public class RouteSeeder implements ApplicationRunner {
                         log.warn("No service URLs configured — skipping route sync.");
                         return Mono.empty();
                 }
-                return Flux.fromIterable(routes)
-                                .concatMap(routeRepository::upsert)
-                                .then()
-                                .doOnSuccess(v -> {
-                                        eventPublisher.publishEvent(new RefreshRoutesEvent(this));
-                                        log.info("Gateway routes synced ({} routes).", routes.size());
-                                });
+                return routeFacade.upsertAll(routes);
         }
 
         private List<GatewayRoute> buildRoutes() {
