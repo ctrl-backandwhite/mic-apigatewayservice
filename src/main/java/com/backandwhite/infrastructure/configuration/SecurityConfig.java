@@ -1,5 +1,6 @@
 package com.backandwhite.infrastructure.configuration;
 
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -8,8 +9,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 /**
  * Configuración de seguridad WebFlux.
@@ -25,30 +24,36 @@ public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        return http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
-                .build();
+                .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll()).build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:4200",
-                "https://*.backandwhite.com",
-                "https://web-auth-des.up.railway.app"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:5174",
+                "http://localhost:9000", "https://web-auth-des.up.railway.app",
+                "https://gateway-service-des.up.railway.app", "https://nx036.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(
+                List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id", "X-Currency"));
         config.setExposedHeaders(List.of("Authorization", "X-Request-Id"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        // CORS solo para rutas que se invocan mediante fetch/XHR desde el
+        // frontend. Las rutas de navegación (/login, /logout, etc.) NO
+        // necesitan CORS porque son páginas server-rendered accedidas como
+        // navegación completa del navegador. Registrar /** provocaba que el
+        // CorsWebFilter validase el header Origin en form-POST de /login,
+        // devolviendo 403 antes de alcanzar el proxy.
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/oauth2/**", config);
+        source.registerCorsConfiguration("/.well-known/**", config);
         return source;
     }
 }

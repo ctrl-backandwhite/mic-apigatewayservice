@@ -1,17 +1,16 @@
 package com.backandwhite.api.dto.out;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 /**
- * DTO de salida que representa la definición de una ruta tal como se expone
- * a través de la API del gateway.
+ * DTO de salida que representa la definición de una ruta tal como se expone a
+ * través de la API del gateway.
  */
 @Data
 @With

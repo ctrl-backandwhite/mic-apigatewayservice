@@ -3,10 +3,9 @@ package com.backandwhite.api.mapper;
 import com.backandwhite.api.dto.in.RouteDefinitionDtoIn;
 import com.backandwhite.api.dto.out.RouteDefinitionDtoOut;
 import com.backandwhite.domain.model.GatewayRoute;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface RouteDefinitionDtoMapper {

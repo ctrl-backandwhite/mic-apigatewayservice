@@ -1,7 +1,3 @@
---liquibase formatted sql
-
---changeset Jesus.Finol:2
---comment: Add per-route rate limit columns for dynamic rate limiting.
 ALTER TABLE gateway_route
     ADD COLUMN rate_limit_replenish_rate  INTEGER,
     ADD COLUMN rate_limit_burst_capacity  INTEGER,

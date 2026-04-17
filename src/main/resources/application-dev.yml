@@ -9,30 +9,16 @@ spring:
     password: ${POSTGRES_PASSWORD}
   liquibase:
     enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.yml
-    url: ${DATABASE_URL}
-    user: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
-    driver-class-name: org.postgresql.Driver
   autoconfigure:
     exclude:
       - "org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration"
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
-      database: 0
-  web:
-    resources:
-      add-mappings: true
-
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-    path: /swagger/index.html
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:3}
+      timeout: 60000
 
 logging:
   level:
@@ -41,14 +27,28 @@ logging:
     com.zaxxer.hikari: INFO
 
 server:
-  port: 9000
+  port: ${SERVER_PORT:9000}
 
 services:
   auth:
-    url: https://auth-service-des.up.railway.app
+    url: http://auth-service-des.railway.internal:8080
+  notification:
+    url: http://notification-service-des.railway.internal:8080
+  catalog:
+    url: http://product-category-des.railway.internal:8080
+  orders:
+    url: ${ORDERS_SERVICE_URL:http://order-service-des.railway.internal:8080}
+  payments:
+    url: ${PAYMENTS_SERVICE_URL:}
+  cms:
+    url: ${CMS_SERVICE_URL:http://cms-service-des.railway.internal:8080}
+  webapp:
+    url: ${WEBAPP_URL:http://nx036-auth-des.railway.internal}
+  ecommerce:
+    url: ${ECOMMERCE_URL:http://nx036-ecomerce.railway.internal:8080}
 
 app:
   jwt:
-    secret: dev-secret-key-change-me-in-production-must-be-256-bits-long
-    expiration-ms: 86400000
-    issuer: mic-iamservice
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    issuer: ${JWT_ISSUER:mic-iamservice}

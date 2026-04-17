@@ -4,12 +4,15 @@ import com.backandwhite.api.dto.in.RouteDefinitionDtoIn;
 import com.backandwhite.api.dto.out.RouteDefinitionDtoOut;
 import com.backandwhite.api.mapper.RouteDefinitionDtoMapper;
 import com.backandwhite.application.usecase.RouteManagementUseCase;
+import com.backandwhite.domain.model.GatewayRoute;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,21 +25,18 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * API de gestión de rutas dinámicas del API Gateway.
  *
  * <p>
- * Permite registrar, actualizar, habilitar/deshabilitar y eliminar rutas
- * en caliente sin necesidad de redeploy. Cada operación de escritura publica
- * un {@code RefreshRoutesEvent} que hace que Spring Cloud Gateway recargue
- * las definiciones desde PostgreSQL de forma inmediata.
+ * Permite registrar, actualizar, habilitar/deshabilitar y eliminar rutas en
+ * caliente sin necesidad de redeploy. Cada operación de escritura publica un
+ * {@code RefreshRoutesEvent} que hace que Spring Cloud Gateway recargue las
+ * definiciones desde PostgreSQL de forma inmediata.
  *
  * <p>
- * Acceso restringido al rol {@code ADMIN} o {@code BACKOFFICE} mediante
- * el {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
+ * Acceso restringido al rol {@code ADMIN} o {@code BACKOFFICE} mediante el
+ * {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
  */
 @Log4j2
 @RestController
@@ -52,8 +52,7 @@ public class RouteManagementController {
      */
     @GetMapping
     public Flux<RouteDefinitionDtoOut> findAll() {
-        return routeManagementUseCase.findAll()
-                .map(mapper::toDtoOut);
+        return routeManagementUseCase.findAll().map(mapper::toDtoOut);
     }
 
     /**
@@ -61,9 +60,7 @@ public class RouteManagementController {
      */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> findById(@PathVariable String id) {
-        return routeManagementUseCase.findById(id)
-                .map(mapper::toDtoOut)
-                .map(ResponseEntity::ok);
+        return routeManagementUseCase.findById(id).map(mapper::toDtoOut).map(ResponseEntity::ok);
     }
 
     /**
@@ -85,8 +82,7 @@ public class RouteManagementController {
      */
     @PostMapping
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> create(@Valid @RequestBody RouteDefinitionDtoIn dto) {
-        return routeManagementUseCase.create(mapper.toDomain(dto))
-                .map(mapper::toDtoOut)
+        return routeManagementUseCase.create(mapper.toDomain(dto)).map(mapper::toDtoOut)
                 .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
     }
 
@@ -94,12 +90,9 @@ public class RouteManagementController {
      * Actualiza una ruta existente y recarga el gateway de forma inmediata.
      */
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<RouteDefinitionDtoOut>> update(
-            @PathVariable String id,
+    public Mono<ResponseEntity<RouteDefinitionDtoOut>> update(@PathVariable String id,
             @Valid @RequestBody RouteDefinitionDtoIn dto) {
-        return routeManagementUseCase.update(mapper.toDomain(dto), id)
-                .map(mapper::toDtoOut)
-                .map(ResponseEntity::ok);
+        return routeManagementUseCase.update(mapper.toDomain(dto), id).map(mapper::toDtoOut).map(ResponseEntity::ok);
     }
 
     /**
@@ -108,13 +101,12 @@ public class RouteManagementController {
      */
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
-        return routeManagementUseCase.delete(id)
-                .then(Mono.just(ResponseEntity.<Void>noContent().build()));
+        return routeManagementUseCase.delete(id).then(Mono.just(ResponseEntity.<Void>noContent().build()));
     }
 
     /**
-     * Elimina múltiples rutas en una sola operación.
-     * Las rutas que no existan se omiten silenciosamente.
+     * Elimina múltiples rutas en una sola operación. Las rutas que no existan se
+     * omiten silenciosamente.
      *
      * <pre>
      * DELETE /api/v1/gateway/routes/bulk
@@ -126,8 +118,25 @@ public class RouteManagementController {
     @DeleteMapping("/bulk")
     public Mono<ResponseEntity<Map<String, Long>>> bulkDelete(@RequestBody Map<String, List<String>> body) {
         List<String> ids = body.getOrDefault("ids", List.of());
-        return routeManagementUseCase.bulkDelete(ids)
-                .map(deleted -> ResponseEntity.ok(Map.of("deleted", deleted)));
+        return routeManagementUseCase.bulkDelete(ids).map(deleted -> ResponseEntity.ok(Map.of("deleted", deleted)));
+    }
+
+    /**
+     * Importa múltiples rutas de forma masiva. Las rutas cuyo id ya exista se
+     * omiten y se informan en el resultado.
+     *
+     * <pre>
+     * POST /api/v1/gateway/routes/bulk
+     * [
+     *   { "id": "svc-1", "uri": "http://localhost:8080", "predicates": ["Path=/api/v1/svc1/**"], "filters": [], "order": 0 },
+     *   { "id": "svc-2", "uri": "http://localhost:9090", "predicates": ["Path=/api/v1/svc2/**"], "filters": [], "order": 1 }
+     * ]
+     * </pre>
+     */
+    @PostMapping("/bulk")
+    public Mono<ResponseEntity<Map<String, Object>>> bulkImport(@RequestBody List<@Valid RouteDefinitionDtoIn> dtos) {
+        List<GatewayRoute> routes = dtos.stream().map(mapper::toDomain).toList();
+        return routeManagementUseCase.bulkImport(routes).map(ResponseEntity::ok);
     }
 
     /**
@@ -135,18 +144,15 @@ public class RouteManagementController {
      */
     @PatchMapping("/{id}/toggle")
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> toggle(@PathVariable String id) {
-        return routeManagementUseCase.toggleEnabled(id)
-                .map(mapper::toDtoOut)
-                .map(ResponseEntity::ok);
+        return routeManagementUseCase.toggleEnabled(id).map(mapper::toDtoOut).map(ResponseEntity::ok);
     }
 
     /**
-     * Fuerza el refresco de rutas en el gateway sin modificar datos.
-     * Útil tras cambios manuales en la base de datos.
+     * Fuerza el refresco de rutas en el gateway sin modificar datos. Útil tras
+     * cambios manuales en la base de datos.
      */
     @PostMapping("/refresh")
     public Mono<ResponseEntity<Void>> refresh() {
-        return routeManagementUseCase.refresh()
-                .then(Mono.just(ResponseEntity.<Void>ok().build()));
+        return routeManagementUseCase.refresh().then(Mono.just(ResponseEntity.<Void>ok().build()));
     }
 }
