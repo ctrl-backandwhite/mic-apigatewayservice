@@ -6,7 +6,7 @@ import com.backandwhite.common.security.jwt.JwtUtils;
 import java.util.List;
 
 /**
- * Genera tokens JWT válidos para los tests.
+ * Generates valid JWT tokens for tests.
  */
 public final class JwtTokenProvider {
 

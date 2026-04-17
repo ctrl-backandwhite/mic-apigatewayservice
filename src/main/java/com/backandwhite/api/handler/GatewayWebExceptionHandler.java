@@ -20,22 +20,20 @@ import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
 /**
- * Manejador global de excepciones a nivel de enrutamiento del Gateway
- * (WebFlux).
+ * Global exception handler at the Gateway routing level (WebFlux).
  *
  * <p>
- * Al estar en {@code @Order(-2)}, se ejecuta antes de
- * {@code DefaultErrorWebExceptionHandler} (orden -1), interceptando tanto
- * errores de enrutamiento (404 sin ruta coincidente) como cualquier otra
- * excepción no capturada por {@link GatewayExceptionHandler}.
+ * Running at {@code @Order(-2)}, it executes before
+ * {@code DefaultErrorWebExceptionHandler} (order -1), intercepting both routing
+ * errors (404 with no matching route) and any other exception not caught by
+ * {@link GatewayExceptionHandler}.
  *
  * <ul>
- * <li>Si el cliente acepta {@code text/html}, devuelve una página HTML
- * autocontenida con el diseño de NX036 (sin dependencias externas).</li>
- * <li>En cualquier otro caso, devuelve {@link GatewayErrorResponseDto}
- * JSON.</li>
- * <li>Añade cabecera {@code Access-Control-Allow-Origin} cuando el origen de la
- * petición está en la lista de orígenes permitidos.</li>
+ * <li>If the client accepts {@code text/html}, returns a self-contained HTML
+ * page with the NX036 design (no external dependencies).</li>
+ * <li>Otherwise, returns a {@link GatewayErrorResponseDto} JSON.</li>
+ * <li>Adds an {@code Access-Control-Allow-Origin} header when the request
+ * origin is in the allowed origins list.</li>
  * </ul>
  *
  * @author NX036-ALFA
@@ -96,14 +94,14 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
             return rse.getReason();
         }
         return switch (status) {
-            case NOT_FOUND -> "No se encontró el recurso solicitado.";
-            case UNAUTHORIZED -> "No autorizado. Por favor, inicia sesión.";
-            case FORBIDDEN -> "Acceso denegado. No tienes permisos suficientes.";
-            case BAD_REQUEST -> "Solicitud incorrecta.";
-            case METHOD_NOT_ALLOWED -> "Método HTTP no permitido.";
-            case TOO_MANY_REQUESTS -> "Demasiadas solicitudes. Por favor, espera un momento.";
-            case SERVICE_UNAVAILABLE -> "Servicio temporalmente no disponible.";
-            default -> "Ha ocurrido un error inesperado.";
+            case NOT_FOUND -> "Requested resource not found.";
+            case UNAUTHORIZED -> "Unauthorized. Please log in.";
+            case FORBIDDEN -> "Access denied. You do not have sufficient permissions.";
+            case BAD_REQUEST -> "Invalid request.";
+            case METHOD_NOT_ALLOWED -> "HTTP method not allowed.";
+            case TOO_MANY_REQUESTS -> "Too many requests. Please wait a moment.";
+            case SERVICE_UNAVAILABLE -> "Service temporarily unavailable.";
+            default -> "An unexpected error occurred.";
         };
     }
 
@@ -116,8 +114,8 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
         if (origin == null)
             return;
         HttpHeaders headers = exchange.getResponse().getHeaders();
-        // Evitar duplicar si el CorsWebFilter de Spring Security ya las
-        // inyectó (para rutas que coinciden con el patrón CORS registrado).
+        // Avoid duplicating if the Spring Security CorsWebFilter already
+        // injected them (for routes matching the registered CORS pattern).
         if (headers.getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN) != null)
             return;
         boolean allowed = ALLOWED_ORIGINS.stream().anyMatch(o -> o.equalsIgnoreCase(origin));
@@ -162,7 +160,7 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
     private String buildHtmlPage(int statusCode, String message) {
         return """
                 <!DOCTYPE html>
-                <html lang="es">
+                <html lang="en">
                 <head>
                   <meta charset="UTF-8" />
                   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -189,9 +187,9 @@ public class GatewayWebExceptionHandler implements WebExceptionHandler {
                       <div class="code">%1$d</div>
                       <div class="divider"></div>
                       <p class="message">%2$s</p>
-                      <a href="/" class="btn">Volver al inicio</a>
+                      <a href="/" class="btn">Back to home</a>
                     </main>
-                    <footer>&copy; 2025 NX036 &mdash; Todos los derechos reservados</footer>
+                    <footer>&copy; 2025 NX036 &mdash; All rights reserved</footer>
                   </div>
                 </body>
                 </html>

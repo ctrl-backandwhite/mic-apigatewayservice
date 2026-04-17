@@ -52,7 +52,7 @@ class GatewayExceptionHandlerTest {
 
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW404");
-            assertThat(dto.getMessage()).isEqualTo("No se encontró el recurso solicitado.");
+            assertThat(dto.getMessage()).isEqualTo("Requested resource not found.");
         }).verifyComplete();
     }
 
@@ -62,7 +62,7 @@ class GatewayExceptionHandlerTest {
 
         StepVerifier.create(handler.handleGeneral(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("IS001");
-            assertThat(dto.getMessage()).isEqualTo("Ha ocurrido un error inesperado.");
+            assertThat(dto.getMessage()).isEqualTo("An unexpected error occurred.");
             assertThat(dto.getDetails()).isEmpty();
         }).verifyComplete();
     }
@@ -79,7 +79,7 @@ class GatewayExceptionHandlerTest {
 
         StepVerifier.create(handler.handleValidation(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("VE001");
-            assertThat(dto.getMessage()).isEqualTo("Error de validación.");
+            assertThat(dto.getMessage()).isEqualTo("Validation error.");
             assertThat(dto.getDetails()).containsExactly("Route id is required", "Route URI is required");
         }).verifyComplete();
     }
@@ -89,7 +89,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW401");
-            assertThat(dto.getMessage()).isEqualTo("No autorizado. Por favor, inicia sesión.");
+            assertThat(dto.getMessage()).isEqualTo("Unauthorized. Please log in.");
         }).verifyComplete();
     }
 
@@ -98,7 +98,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.FORBIDDEN);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW403");
-            assertThat(dto.getMessage()).isEqualTo("Acceso denegado. No tienes permisos suficientes.");
+            assertThat(dto.getMessage()).isEqualTo("Access denied. You do not have sufficient permissions.");
         }).verifyComplete();
     }
 
@@ -107,7 +107,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.BAD_REQUEST);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW400");
-            assertThat(dto.getMessage()).isEqualTo("Solicitud incorrecta.");
+            assertThat(dto.getMessage()).isEqualTo("Invalid request.");
         }).verifyComplete();
     }
 
@@ -116,7 +116,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.METHOD_NOT_ALLOWED);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW405");
-            assertThat(dto.getMessage()).isEqualTo("Método HTTP no permitido.");
+            assertThat(dto.getMessage()).isEqualTo("HTTP method not allowed.");
         }).verifyComplete();
     }
 
@@ -125,7 +125,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW429");
-            assertThat(dto.getMessage()).isEqualTo("Demasiadas solicitudes. Por favor, espera un momento.");
+            assertThat(dto.getMessage()).isEqualTo("Too many requests. Please wait a moment.");
         }).verifyComplete();
     }
 
@@ -143,7 +143,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND, "  ");
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW404");
-            assertThat(dto.getMessage()).isEqualTo("No se encontró el recurso solicitado.");
+            assertThat(dto.getMessage()).isEqualTo("Requested resource not found.");
         }).verifyComplete();
     }
 
@@ -152,7 +152,7 @@ class GatewayExceptionHandlerTest {
         ResponseStatusException ex = new ResponseStatusException(HttpStatus.CONFLICT);
         StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
             assertThat(dto.getCode()).isEqualTo("GW409");
-            assertThat(dto.getMessage()).isEqualTo("Ha ocurrido un error inesperado.");
+            assertThat(dto.getMessage()).isEqualTo("An unexpected error occurred.");
         }).verifyComplete();
     }
 }

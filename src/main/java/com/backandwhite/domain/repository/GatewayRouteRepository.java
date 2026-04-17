@@ -5,8 +5,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Contrato de persistencia reactiva para las rutas del gateway. Las
- * implementaciones utilizan R2DBC sobre PostgreSQL.
+ * Reactive persistence contract for gateway routes. Implementations use R2DBC
+ * over PostgreSQL.
  */
 public interface GatewayRouteRepository {
 
@@ -27,9 +27,9 @@ public interface GatewayRouteRepository {
     Mono<Long> count();
 
     /**
-     * Inserta la ruta si no existe o actualiza uri, predicates, filters, order y
-     * rate-limit si ya existe. Preserva {@code enabled} y {@code createdAt} para no
-     * pisar cambios manuales del operador.
+     * Inserts the route if it does not exist or updates uri, predicates, filters,
+     * order and rate-limit if it already exists. Preserves {@code enabled} and
+     * {@code createdAt} so as not to overwrite manual operator changes.
      */
     Mono<Void> upsert(GatewayRoute route);
 }

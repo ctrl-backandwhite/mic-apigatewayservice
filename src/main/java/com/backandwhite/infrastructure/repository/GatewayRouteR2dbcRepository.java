@@ -5,8 +5,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 
 /**
- * Repositorio R2DBC reactivo para operaciones CRUD sobre
- * {@link GatewayRouteEntity}.
+ * Reactive R2DBC repository for CRUD operations on {@link GatewayRouteEntity}.
  */
 public interface GatewayRouteR2dbcRepository extends ReactiveCrudRepository<GatewayRouteEntity, String> {
 

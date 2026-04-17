@@ -76,10 +76,10 @@ public class GatewayRouteRepositoryImpl implements GatewayRouteRepository {
     }
 
     /**
-     * INSERT ... ON CONFLICT (id) DO UPDATE: - Si la ruta no existe → la inserta
-     * con enabled=true y createdAt=NOW(). - Si ya existe → actualiza uri,
-     * predicates, filters, order y rate-limit. Preserva enabled y createdAt para no
-     * pisar cambios manuales.
+     * INSERT ... ON CONFLICT (id) DO UPDATE: - If the route does not exist →
+     * inserts it with enabled=true and createdAt=NOW(). - If it already exists →
+     * updates uri, predicates, filters, order and rate-limit. Preserves enabled and
+     * createdAt so as not to overwrite manual changes.
      */
     @Override
     public Mono<Void> upsert(GatewayRoute route) {

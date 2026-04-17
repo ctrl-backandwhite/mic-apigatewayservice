@@ -13,19 +13,19 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Fachada que encapsula la complejidad de la gestión de rutas del gateway.
+ * Facade that encapsulates the complexity of gateway route management.
  *
  * <p>
- * Coordina el acceso al repositorio de rutas, la publicación de eventos de
- * refresco y el mapeo entre capas. Los use cases delegan en esta fachada para
- * no acoplarse directamente a la infraestructura.
+ * Coordinates access to the route repository, publication of refresh events and
+ * mapping between layers. Use cases delegate to this facade to avoid coupling
+ * directly to infrastructure.
  *
  * <p>
- * Patrón Facade aplicado:
+ * Facade pattern applied:
  * <ul>
- * <li>{@link GatewayRouteRepository} — persistencia reactiva</li>
- * <li>{@link ApplicationEventPublisher} — eventos de refresco del gateway</li>
- * <li>{@link GatewayRouteEntityMapper} — conversión entity↔domain</li>
+ * <li>{@link GatewayRouteRepository} — reactive persistence</li>
+ * <li>{@link ApplicationEventPublisher} — gateway refresh events</li>
+ * <li>{@link GatewayRouteEntityMapper} — entity↔domain conversion</li>
  * </ul>
  */
 @Log4j2

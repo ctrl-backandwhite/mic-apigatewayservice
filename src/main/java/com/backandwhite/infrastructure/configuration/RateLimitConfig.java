@@ -10,41 +10,41 @@ import org.springframework.context.annotation.Profile;
 import reactor.core.publisher.Mono;
 
 /**
- * Configuración del rate limiter basado en Redis.
+ * Redis-based rate limiter configuration.
  *
  * <p>
- * Algoritmo Token Bucket:
+ * Token Bucket algorithm:
  * <ul>
- * <li>replenishRate — tokens añadidos por segundo (velocidad sostenida)</li>
- * <li>burstCapacity — capacidad máxima del bucket (picos permitidos)</li>
- * <li>requestedTokens — tokens consumidos por request</li>
+ * <li>replenishRate — tokens added per second (sustained rate)</li>
+ * <li>burstCapacity — maximum bucket capacity (allowed bursts)</li>
+ * <li>requestedTokens — tokens consumed per request</li>
  * </ul>
  *
  * <p>
- * Cada ruta define sus propios valores de rate limit en la tabla
- * {@code gateway_route} (columnas {@code rate_limit_replenish_rate},
+ * Each route defines its own rate-limit values in the {@code gateway_route}
+ * table (columns {@code rate_limit_replenish_rate},
  * {@code rate_limit_burst_capacity}, {@code rate_limit_requested_tokens}).
  * {@link com.backandwhite.infrastructure.repository.PostgresRouteDefinitionRepository}
- * inyecta un {@code RequestRateLimiter} filter con esos valores por ruta. Rutas
- * sin rate limit configurado no aplican limitación.
+ * injects a {@code RequestRateLimiter} filter with those per-route values.
+ * Routes without rate-limit configuration do not apply throttling.
  *
  * <p>
- * El bean {@link #redisRateLimiter()} define los valores por defecto del rate
- * limiter. Los valores por ruta los sobreescriben automáticamente.
+ * The {@link #redisRateLimiter()} bean defines the default rate limiter values.
+ * Per-route values automatically override them.
  */
 @Configuration
 @Profile("!test")
 public class RateLimitConfig {
 
     /**
-     * Rate limiter por defecto: 10 req/min por clave.
+     * Default rate limiter: 10 req/min per key.
      *
      * <p>
-     * Configuración equivalente:
+     * Equivalent configuration:
      * <ul>
-     * <li>replenishRate = 1 token/segundo</li>
+     * <li>replenishRate = 1 token/second</li>
      * <li>requestedTokens = 6 tokens/request</li>
-     * <li>burstCapacity = 60 tokens (hasta 10 requests en ráfaga)</li>
+     * <li>burstCapacity = 60 tokens (up to 10 requests in a burst)</li>
      * </ul>
      */
     @Bean
@@ -53,8 +53,7 @@ public class RateLimitConfig {
     }
 
     /**
-     * Resolver de clave por IP + URL para limitar cada endpoint de forma
-     * independiente.
+     * IP + URL key resolver to throttle each endpoint independently.
      */
     @Bean
     @Primary
@@ -72,13 +71,13 @@ public class RateLimitConfig {
     }
 
     /**
-     * KeyResolver por defecto de Spring Cloud Gateway para RequestRateLimiter
-     * cuando una ruta no define explícitamente {@code key-resolver}.
+     * Default KeyResolver for Spring Cloud Gateway's RequestRateLimiter when a
+     * route does not explicitly define a {@code key-resolver}.
      *
      * <p>
-     * Se alinea con {@link #ipKeyResolver()} para evitar claves vacías (por
-     * ejemplo, cuando no hay principal autenticado) que podrían terminar en
-     * respuestas 403 por {@code deny-empty-key}.
+     * Aligned with {@link #ipKeyResolver()} to avoid empty keys (e.g. when there is
+     * no authenticated principal) that could result in 403 responses due to
+     * {@code deny-empty-key}.
      */
     @Bean(name = "principalNameKeyResolver")
     public KeyResolver principalNameKeyResolver() {

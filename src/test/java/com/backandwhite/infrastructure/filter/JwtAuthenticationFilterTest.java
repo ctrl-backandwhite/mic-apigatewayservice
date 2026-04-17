@@ -131,7 +131,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void filter_onPublicGetProductsPostWithoutToken_shouldReturnUnauthorized() {
-        // POST /api/v1/products requiere autenticación aunque GET sea público
+        // POST /api/v1/products requires authentication even though GET is public
         MockServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.post("/api/v1/products").build());
 

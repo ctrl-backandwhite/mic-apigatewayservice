@@ -14,22 +14,22 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * Sincroniza las rutas definidas en el código con la tabla
- * {@code gateway_route} en cada arranque del servicio.
+ * Synchronizes routes defined in code with the {@code gateway_route} table on
+ * each service startup.
  *
  * <p>
- * Usa upsert (INSERT ... ON CONFLICT DO UPDATE) por lo que:
+ * Uses upsert (INSERT ... ON CONFLICT DO UPDATE) so that:
  * <ul>
- * <li>En el primer arranque crea todas las rutas.</li>
- * <li>En arranques posteriores corrige predicates, uri o rate-limit si
- * cambiaron en el código, sin tocar el flag {@code enabled} (el operador puede
- * deshabilitar una ruta manualmente y no se resetea).</li>
- * <li>Rutas extra creadas vía API quedan intactas.</li>
+ * <li>On the first startup it creates all routes.</li>
+ * <li>On subsequent startups it corrects predicates, uri or rate-limit if they
+ * changed in code, without touching the {@code enabled} flag (operators can
+ * disable a route manually and it will not be reset).</li>
+ * <li>Extra routes created via the API remain untouched.</li>
  * </ul>
  *
  * <p>
- * Las URLs de los servicios se inyectan desde el perfil de configuración activo
- * a través de {@link ServicesProperties}.
+ * Service URLs are injected from the active configuration profile via
+ * {@link ServicesProperties}.
  */
 @Log4j2
 @Component
@@ -49,8 +49,8 @@ public class RouteSeeder implements ApplicationRunner {
     }
 
     /**
-     * Hace upsert de todas las rutas definidas y publica RefreshRoutesEvent para
-     * que el gateway las recargue en caliente.
+     * Upserts all defined routes and publishes a RefreshRoutesEvent so that the
+     * gateway reloads them on the fly.
      */
     private Mono<Void> syncRoutes() {
         List<GatewayRoute> routes = buildRoutes();
@@ -64,8 +64,8 @@ public class RouteSeeder implements ApplicationRunner {
     private List<GatewayRoute> buildRoutes() {
         List<GatewayRoute> routes = new ArrayList<>();
 
-        // Un único Path= con patrones separados por coma → PathRoutePredicateFactory
-        // hace OR interno. Múltiples Path= separados serían AND → nunca coinciden.
+        // A single Path= with comma-separated patterns → PathRoutePredicateFactory
+        // does internal OR. Multiple separate Path= would be AND → never matches.
         addRouteIfConfigured(routes, "auth-service-oauth2", services.auth(),
                 List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/logout," + "/login.html," + "/register.html,"
                         + "/forgot-password.html," + "/reset-password.html," + "/reset-success.html,"
