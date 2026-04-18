@@ -19,7 +19,11 @@ spring:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+        # RewriteLocationResponseHeader removed intentionally: it always rewrites the
+        # Location host to the gateway host (regardless of NEVER_STRIP/AS_IN_REQUEST,
+        # which only affect the path version). That behavior breaks OAuth2 external
+        # redirects, e.g. https://accounts.google.com/... would be rewritten to
+        # https://localhost:9000/..., producing an ERR_SSL_PROTOCOL_ERROR in the browser.
       routes: []
       x-forwarded:
         enabled: true

@@ -71,7 +71,10 @@ public class RouteSeeder implements ApplicationRunner {
                         + "/forgot-password.html," + "/reset-password.html," + "/reset-success.html,"
                         + "/reset-error.html," + "/activation-success.html," + "/activation-error.html,"
                         + "/terms.html," + "/css/**," + "/js/**," + "/images/**," + "/favicon.ico"),
-                List.of("RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,"), -1, 0, 0, 0);
+                // No Location-rewriting filter: RewriteLocationResponseHeader would
+                // rewrite external redirects (e.g. https://accounts.google.com/...) to
+                // the gateway host, breaking OAuth2 login with Google.
+                List.of(), -1, 0, 0, 0);
 
         addRouteIfConfigured(routes, "auth-service", services.auth(),
                 List.of("Path=/api/v1/auth/**," + "/api/v1/users/**," + "/api/v1/roles/**," + "/api/v1/groups/**,"

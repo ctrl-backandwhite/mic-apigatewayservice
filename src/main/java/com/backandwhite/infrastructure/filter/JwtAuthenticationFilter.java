@@ -84,6 +84,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                     return true;
                 }
             }
+            // SPA fallback: any non-API GET is a frontend asset (HTML, JS chunks,
+            // images, Vite HMR, React refresh, etc.) routed to the Vite dev server
+            // or Caddy in prod via the ecomerce-frontend route.
+            if (!path.startsWith("/api/v1/")) {
+                return true;
+            }
         }
         return false;
     }
