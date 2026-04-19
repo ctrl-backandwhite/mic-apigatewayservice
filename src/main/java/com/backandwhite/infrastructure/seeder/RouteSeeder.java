@@ -67,10 +67,11 @@ public class RouteSeeder implements ApplicationRunner {
         // A single Path= with comma-separated patterns → PathRoutePredicateFactory
         // does internal OR. Multiple separate Path= would be AND → never matches.
         addRouteIfConfigured(routes, "auth-service-oauth2", services.auth(),
-                List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/logout," + "/login.html," + "/register.html,"
-                        + "/forgot-password.html," + "/reset-password.html," + "/reset-success.html,"
-                        + "/reset-error.html," + "/activation-success.html," + "/activation-error.html,"
-                        + "/terms.html," + "/css/**," + "/js/**," + "/images/**," + "/favicon.ico"),
+                List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/login/**,/logout," + "/login.html,"
+                        + "/register.html," + "/forgot-password.html," + "/reset-password.html,"
+                        + "/reset-success.html," + "/reset-error.html," + "/activation-success.html,"
+                        + "/activation-error.html," + "/terms.html," + "/css/**," + "/js/**," + "/images/**,"
+                        + "/favicon.ico"),
                 // No Location-rewriting filter: RewriteLocationResponseHeader would
                 // rewrite external redirects (e.g. https://accounts.google.com/...) to
                 // the gateway host, breaking OAuth2 login with Google.
@@ -106,7 +107,18 @@ public class RouteSeeder implements ApplicationRunner {
         // Order service — all other authenticated order + shipping + tracking endpoints
         addRouteIfConfigured(routes, "orders-service", services.orders(),
                 List.of("Path=/api/v1/orders/**," + "/api/v1/cart/**," + "/api/v1/tracking/**," + "/api/v1/shipping/**,"
-                        + "/api/v1/returns/**," + "/api/v1/invoices/**," + "/api/v1/admin/cj-orders/**"),
+                        + "/api/v1/returns/**," + "/api/v1/invoices/**," + "/api/v1/coupons/**,"
+                        + "/api/v1/admin/cj-orders/**"),
+                0, 10, 20, 1);
+
+        // Payment service
+        addRouteIfConfigured(routes, "payments-service", services.payments(), List.of("Path=/api/v1/payments/**"), 0,
+                10, 20, 1);
+
+        // User detail service — profile, addresses, favorites, payment methods, prefs
+        addRouteIfConfigured(routes, "userdetail-service", services.userdetail(),
+                List.of("Path=/api/v1/profile/**," + "/api/v1/addresses/**," + "/api/v1/favorites/**,"
+                        + "/api/v1/payment-methods/**," + "/api/v1/notification-prefs/**," + "/api/v1/customers/**"),
                 0, 10, 20, 1);
 
         routes.add(GatewayRoute.builder().id("gateway-management").uri("forward:///")

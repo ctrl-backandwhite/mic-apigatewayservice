@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "services")
 public record ServicesProperties(Service auth, Service notification, Service catalog, Service cms, Service orders,
-        Service payments, Service webapp, Service ecommerce) {
+        Service payments, Service userdetail, Service webapp, Service ecommerce) {
     public record Service(String url) {
     }
 }

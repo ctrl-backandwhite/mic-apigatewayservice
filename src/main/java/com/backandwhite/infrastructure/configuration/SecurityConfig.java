@@ -35,8 +35,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:5174",
-                "http://localhost:9000", "https://web-auth-des.up.railway.app",
-                "https://gateway-service-des.up.railway.app", "https://nx036.com"));
+                "http://localhost:9000", "http://host.docker.internal:9000", "http://host.docker.internal:5174",
+                "https://web-auth-des.up.railway.app", "https://gateway-service-des.up.railway.app",
+                "https://nx036.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(
                 List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id", "X-Currency"));
