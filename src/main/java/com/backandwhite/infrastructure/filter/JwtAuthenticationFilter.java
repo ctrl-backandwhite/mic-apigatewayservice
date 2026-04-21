@@ -44,6 +44,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             // auth; the endpoint validates HMAC server-side.
             "/api/v1/invoices/public/");
 
+    /**
+     * Paths that must be accessible ONLY to ADMIN or BACKOFFICE. Evaluated
+     * before the generic token-presence check so that anonymous access is
+     * rejected even when a path would otherwise pass through.
+     */
+    private static final List<String> ADMIN_ONLY_PATHS = List.of("/api/v1/gateway/routes");
+
+    private static final List<String> ADMIN_ROLES = List.of("ROLE_ADMIN", "ADMIN", "ROLE_BACKOFFICE", "BACKOFFICE");
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
@@ -77,8 +86,39 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         // with the gateway's HMAC secret. Signature validation is performed by each
         // resource server via its oauth2ResourceServer JWT decoder.
         String token = authHeader.substring(BEARER_PREFIX.length());
-        parseClaimsUnsafely(token).ifPresent(claims -> enrichWithClaims(mutate, claims));
+        Optional<TokenClaims> claimsOpt = parseClaimsUnsafely(token);
+
+        if (isAdminOnlyPath(path) && !hasAdminRole(claimsOpt)) {
+            return forbidden(exchange);
+        }
+
+        claimsOpt.ifPresent(claims -> enrichWithClaims(mutate, claims));
         return chain.filter(exchange.mutate().request(mutate.build()).build());
+    }
+
+    private boolean isAdminOnlyPath(String path) {
+        for (String adminPath : ADMIN_ONLY_PATHS) {
+            if (path.equals(adminPath) || path.startsWith(adminPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasAdminRole(Optional<TokenClaims> claimsOpt) {
+        if (claimsOpt.isEmpty()) {
+            return false;
+        }
+        List<String> roles = claimsOpt.get().roles();
+        if (roles == null || roles.isEmpty()) {
+            return false;
+        }
+        for (String role : roles) {
+            if (ADMIN_ROLES.contains(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -167,6 +207,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
         return exchange.getResponse().setComplete();
     }
 }
