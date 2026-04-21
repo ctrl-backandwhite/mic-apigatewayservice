@@ -39,7 +39,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_GET_PATHS = List.of("/api/v1/products", "/api/v1/categories",
             "/api/v1/public/", "/api/v1/reviews", "/api/v1/brands", "/api/v1/slides/active",
             "/api/v1/gift-cards/designs/active", "/api/v1/loyalty/tiers", "/api/v1/loyalty/rules",
-            "/api/v1/currency-rates", "/api/v1/settings", "/api/v1/campaigns", "/api/v1/seo");
+            "/api/v1/currency-rates", "/api/v1/settings", "/api/v1/campaigns", "/api/v1/seo",
+            // Signed-URL PDF invoices — the sig+exp query params carry the
+            // auth; the endpoint validates HMAC server-side.
+            "/api/v1/invoices/public/");
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
