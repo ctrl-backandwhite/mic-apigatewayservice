@@ -87,7 +87,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         // Spring Authorization Server issues RSA-signed JWTs that can't be verified
         // with the gateway's HMAC secret. Signature validation is performed by each
         // resource server via its oauth2ResourceServer JWT decoder.
+        // The gateway still rejects structurally malformed tokens and tokens whose
+        // `exp` claim has elapsed so obviously invalid traffic is dropped early.
         String token = authHeader.substring(BEARER_PREFIX.length());
+        if (!isStructurallyValidJwt(token) || isExpired(token)) {
+            return unauthorized(exchange);
+        }
         Optional<TokenClaims> claimsOpt = parseClaimsUnsafely(token);
 
         if (isAdminOnlyPath(path) && !hasAdminRole(claimsOpt)) {
@@ -155,6 +160,52 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
             String token = authHeader.substring(BEARER_PREFIX.length());
             parseClaimsUnsafely(token).ifPresent(claims -> enrichWithClaims(mutate, claims));
+        }
+    }
+
+    /**
+     * Returns true when the token has the JWT shape (header.payload.signature) AND
+     * the payload segment can be Base64-URL decoded into valid JSON.
+     */
+    private boolean isStructurallyValidJwt(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            return false;
+        }
+        try {
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            MAPPER.readTree(new String(payloadBytes, StandardCharsets.UTF_8));
+            return true;
+        } catch (Exception e) { // NOSONAR java:S1166 — boolean validation
+            log.debug("JWT payload could not be parsed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Returns true when the JWT carries an {@code exp} claim that has already
+     * elapsed. Tokens without an {@code exp} claim are treated as non-expiring
+     * (legacy / service-to-service tokens).
+     */
+    private boolean isExpired(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                return false;
+            }
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            JsonNode payload = MAPPER.readTree(new String(payloadBytes, StandardCharsets.UTF_8));
+            if (!payload.hasNonNull("exp")) {
+                return false;
+            }
+            long expSeconds = payload.get("exp").asLong();
+            return expSeconds > 0 && expSeconds < (System.currentTimeMillis() / 1000L);
+        } catch (Exception e) { // NOSONAR java:S1166
+            // If we can't decode it, isStructurallyValidJwt already rejected it.
+            return true;
         }
     }
 

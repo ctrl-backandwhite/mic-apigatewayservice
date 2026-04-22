@@ -105,4 +105,15 @@ class GatewayRouteEntityMapperTest {
         assertThat(restored.getOrder()).isEqualTo(original.getOrder());
         assertThat(restored.isEnabled()).isEqualTo(original.isEnabled());
     }
+
+    @Test
+    void toDomain_withBlankPredicatesAndFilters_shouldReturnEmptyLists() {
+        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
+                .predicates("").filters("   ").order(0).enabled(true).build();
+
+        GatewayRoute domain = mapper.toDomain(entity);
+
+        assertThat(domain.getPredicates()).isEmpty();
+        assertThat(domain.getFilters()).isEmpty();
+    }
 }
