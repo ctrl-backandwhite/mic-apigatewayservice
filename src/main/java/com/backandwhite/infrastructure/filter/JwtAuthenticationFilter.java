@@ -42,7 +42,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/currency-rates", "/api/v1/settings", "/api/v1/campaigns", "/api/v1/seo",
             // Signed-URL PDF invoices — the sig+exp query params carry the
             // auth; the endpoint validates HMAC server-side.
-            "/api/v1/invoices/public/");
+            "/api/v1/invoices/public/",
+            // HMAC-signed public order-tracking links emailed to the customer
+            "/api/v1/orders/public/tracking/");
 
     /**
      * Paths that must be accessible ONLY to ADMIN or BACKOFFICE. Evaluated
