@@ -47,9 +47,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/orders/public/tracking/");
 
     /**
-     * Paths that must be accessible ONLY to ADMIN or BACKOFFICE. Evaluated
-     * before the generic token-presence check so that anonymous access is
-     * rejected even when a path would otherwise pass through.
+     * Paths that must be accessible ONLY to ADMIN or BACKOFFICE. Evaluated before
+     * the generic token-presence check so that anonymous access is rejected even
+     * when a path would otherwise pass through.
      */
     private static final List<String> ADMIN_ONLY_PATHS = List.of("/api/v1/gateway/routes");
 
