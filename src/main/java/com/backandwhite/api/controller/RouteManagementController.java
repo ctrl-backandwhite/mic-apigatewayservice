@@ -26,16 +26,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * API de gestión de rutas dinámicas del API Gateway.
+ * Dynamic route management API for the API Gateway.
  *
  * <p>
- * Permite registrar, actualizar, habilitar/deshabilitar y eliminar rutas en
- * caliente sin necesidad de redeploy. Cada operación de escritura publica un
- * {@code RefreshRoutesEvent} que hace que Spring Cloud Gateway recargue las
- * definiciones desde PostgreSQL de forma inmediata.
+ * Allows registering, updating, enabling/disabling and deleting routes on the
+ * fly without redeploying. Each write operation publishes a
+ * {@code RefreshRoutesEvent} that makes Spring Cloud Gateway reload definitions
+ * from PostgreSQL immediately.
  *
  * <p>
- * Acceso restringido al rol {@code ADMIN} o {@code BACKOFFICE} mediante el
+ * Access restricted to the {@code ADMIN} or {@code BACKOFFICE} role via the
  * {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
  */
 @Log4j2
@@ -48,7 +48,7 @@ public class RouteManagementController {
     private final RouteDefinitionDtoMapper mapper;
 
     /**
-     * Lista todas las rutas registradas (activas e inactivas).
+     * Lists all registered routes (active and inactive).
      */
     @GetMapping
     public Flux<RouteDefinitionDtoOut> findAll() {
@@ -56,7 +56,7 @@ public class RouteManagementController {
     }
 
     /**
-     * Obtiene el detalle de una ruta por su identificador.
+     * Gets the detail of a route by its identifier.
      */
     @GetMapping("/{id}")
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> findById(@PathVariable String id) {
@@ -64,11 +64,10 @@ public class RouteManagementController {
     }
 
     /**
-     * Registra una nueva ruta en PostgreSQL y recarga el gateway de forma
-     * inmediata.
+     * Registers a new route in PostgreSQL and reloads the gateway immediately.
      *
      * <p>
-     * Ejemplo de body:
+     * Example body:
      * 
      * <pre>
      * {
@@ -87,7 +86,7 @@ public class RouteManagementController {
     }
 
     /**
-     * Actualiza una ruta existente y recarga el gateway de forma inmediata.
+     * Updates an existing route and reloads the gateway immediately.
      */
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> update(@PathVariable String id,
@@ -96,8 +95,7 @@ public class RouteManagementController {
     }
 
     /**
-     * Elimina una ruta del gateway. La ruta deja de estar activa de forma
-     * inmediata.
+     * Deletes a gateway route. The route becomes inactive immediately.
      */
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Void>> delete(@PathVariable String id) {
@@ -105,15 +103,15 @@ public class RouteManagementController {
     }
 
     /**
-     * Elimina múltiples rutas en una sola operación. Las rutas que no existan se
-     * omiten silenciosamente.
+     * Deletes multiple routes in a single operation. Non-existent routes are
+     * silently skipped.
      *
      * <pre>
      * DELETE /api/v1/gateway/routes/bulk
      * { "ids": ["route-1", "route-2", "route-3"] }
      * </pre>
      *
-     * @return cantidad de rutas efectivamente eliminadas.
+     * @return number of routes effectively deleted.
      */
     @DeleteMapping("/bulk")
     public Mono<ResponseEntity<Map<String, Long>>> bulkDelete(@RequestBody Map<String, List<String>> body) {
@@ -122,8 +120,8 @@ public class RouteManagementController {
     }
 
     /**
-     * Importa múltiples rutas de forma masiva. Las rutas cuyo id ya exista se
-     * omiten y se informan en el resultado.
+     * Bulk-imports multiple routes. Routes whose id already exists are skipped and
+     * reported in the result.
      *
      * <pre>
      * POST /api/v1/gateway/routes/bulk
@@ -140,7 +138,7 @@ public class RouteManagementController {
     }
 
     /**
-     * Activa o desactiva una ruta sin eliminarla. Útil para mantenimiento.
+     * Toggles a route on or off without deleting it. Useful for maintenance.
      */
     @PatchMapping("/{id}/toggle")
     public Mono<ResponseEntity<RouteDefinitionDtoOut>> toggle(@PathVariable String id) {
@@ -148,8 +146,8 @@ public class RouteManagementController {
     }
 
     /**
-     * Fuerza el refresco de rutas en el gateway sin modificar datos. Útil tras
-     * cambios manuales en la base de datos.
+     * Forces a route refresh in the gateway without modifying data. Useful after
+     * manual database changes.
      */
     @PostMapping("/refresh")
     public Mono<ResponseEntity<Void>> refresh() {

@@ -11,9 +11,9 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Mapper manual entre {@link GatewayRouteEntity} y {@link GatewayRoute}. Se
- * implementa manualmente (no MapStruct) porque la conversión JSON ↔
- * List<String> requiere el ObjectMapper de Jackson.
+ * Manual mapper between {@link GatewayRouteEntity} and {@link GatewayRoute}.
+ * Implemented manually (not MapStruct) because the JSON ↔ List&lt;String&gt;
+ * conversion requires Jackson's ObjectMapper.
  */
 @Log4j2
 @Component

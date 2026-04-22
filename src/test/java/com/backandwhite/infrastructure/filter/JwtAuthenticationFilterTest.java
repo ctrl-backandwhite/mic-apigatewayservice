@@ -131,7 +131,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void filter_onPublicGetProductsPostWithoutToken_shouldReturnUnauthorized() {
-        // POST /api/v1/products requiere autenticación aunque GET sea público
+        // POST /api/v1/products requires authentication even though GET is public
         MockServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.post("/api/v1/products").build());
 
@@ -256,5 +256,83 @@ class JwtAuthenticationFilterTest {
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_withOptionsMethod_shouldProceedWithoutAuthCheck() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.options("/api/v1/orders/1").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onAdminOnlyPathWithCustomerToken_shouldReturnForbidden() {
+        String token = JwtTokenProvider.customerToken("customer@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("/api/v1/gateway/routes").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(chain, never()).filter(any());
+    }
+
+    @Test
+    void filter_onAdminOnlyPathWithAdminToken_shouldProceed() {
+        String token = JwtTokenProvider.adminToken("admin@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("/api/v1/gateway/routes").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_onAdminOnlyPathPrefixWithCustomerToken_shouldReturnForbidden() {
+        String token = JwtTokenProvider.customerToken("customer@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("/api/v1/gateway/routes/some-id").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(chain, never()).filter(any());
+    }
+
+    @Test
+    void filter_onSpaFallbackGetPath_shouldProceedWithoutAuth() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/home").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_withTokenWithoutExpClaim_shouldProceed() {
+        String token = JwtTokenProvider.tokenWithoutExp("user@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders/1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
+    }
+
+    @Test
+    void filter_withInvalidBase64InJwtPayload_shouldReturnUnauthorized() {
+        String badToken = "eyJhbGciOiJIUzI1NiJ9.!!!invalid_base64!!!.fakesig";
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders/1")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + badToken).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(chain, never()).filter(any());
     }
 }

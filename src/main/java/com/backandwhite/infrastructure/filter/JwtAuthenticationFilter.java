@@ -1,9 +1,12 @@
 package com.backandwhite.infrastructure.filter;
 
 import com.backandwhite.common.constants.AppConstants;
-import com.backandwhite.common.security.jwt.JwtProperties;
-import com.backandwhite.common.security.jwt.JwtUtils;
 import com.backandwhite.common.security.model.TokenClaims;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -34,15 +37,38 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/api/v1/auth/refresh-token", "/api/v1/cj/webhook/");
 
     private static final List<String> PUBLIC_GET_PATHS = List.of("/api/v1/products", "/api/v1/categories",
-            "/api/v1/public/", "/api/v1/reviews", "/api/v1/brands");
+            "/api/v1/public/", "/api/v1/reviews", "/api/v1/brands", "/api/v1/slides/active",
+            "/api/v1/gift-cards/designs/active", "/api/v1/loyalty/tiers", "/api/v1/loyalty/rules",
+            "/api/v1/currency-rates", "/api/v1/settings", "/api/v1/campaigns", "/api/v1/seo",
+            // Signed-URL PDF invoices — the sig+exp query params carry the
+            // auth; the endpoint validates HMAC server-side.
+            "/api/v1/invoices/public/",
+            // HMAC-signed public order-tracking links emailed to the customer
+            "/api/v1/orders/public/tracking/");
 
-    private final JwtProperties jwtProperties;
+    /**
+     * Paths that must be accessible ONLY to ADMIN or BACKOFFICE. Evaluated before
+     * the generic token-presence check so that anonymous access is rejected even
+     * when a path would otherwise pass through.
+     */
+    private static final List<String> ADMIN_ONLY_PATHS = List.of("/api/v1/gateway/routes");
+
+    private static final List<String> ADMIN_ROLES = List.of("ROLE_ADMIN", "ADMIN", "ROLE_BACKOFFICE", "BACKOFFICE");
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
         HttpMethod method = request.getMethod();
+
+        // CORS preflights never carry Authorization and must never be blocked
+        // by this filter — the CorsWebFilter further down the chain is
+        // responsible for answering them with the right headers.
+        if (HttpMethod.OPTIONS.equals(method)) {
+            return chain.filter(exchange);
+        }
 
         ServerHttpRequest.Builder mutate = request.mutate().header(AppConstants.HEADER_NX036_AUTH, "gateway")
                 .headers(h -> h.remove(HttpHeaders.ORIGIN));
@@ -57,14 +83,49 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange);
         }
 
+        // Parse claims for downstream enrichment but do NOT validate the signature:
+        // Spring Authorization Server issues RSA-signed JWTs that can't be verified
+        // with the gateway's HMAC secret. Signature validation is performed by each
+        // resource server via its oauth2ResourceServer JWT decoder.
+        // The gateway still rejects structurally malformed tokens and tokens whose
+        // `exp` claim has elapsed so obviously invalid traffic is dropped early.
         String token = authHeader.substring(BEARER_PREFIX.length());
-        Optional<TokenClaims> claimsOpt = JwtUtils.validateAndExtract(token, jwtProperties.secret());
-        if (claimsOpt.isEmpty()) {
+        if (!isStructurallyValidJwt(token) || isExpired(token)) {
             return unauthorized(exchange);
         }
+        Optional<TokenClaims> claimsOpt = parseClaimsUnsafely(token);
 
-        enrichWithClaims(mutate, claimsOpt.get());
+        if (isAdminOnlyPath(path) && !hasAdminRole(claimsOpt)) {
+            return forbidden(exchange);
+        }
+
+        claimsOpt.ifPresent(claims -> enrichWithClaims(mutate, claims));
         return chain.filter(exchange.mutate().request(mutate.build()).build());
+    }
+
+    private boolean isAdminOnlyPath(String path) {
+        for (String adminPath : ADMIN_ONLY_PATHS) {
+            if (path.equals(adminPath) || path.startsWith(adminPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasAdminRole(Optional<TokenClaims> claimsOpt) {
+        if (claimsOpt.isEmpty()) {
+            return false;
+        }
+        List<String> roles = claimsOpt.get().roles();
+        if (roles == null || roles.isEmpty()) {
+            return false;
+        }
+        for (String role : roles) {
+            if (ADMIN_ROLES.contains(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -84,6 +145,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                     return true;
                 }
             }
+            // SPA fallback: any non-API GET is a frontend asset (HTML, JS chunks,
+            // images, Vite HMR, React refresh, etc.) routed to the Vite dev server
+            // or Caddy in prod via the ecomerce-frontend route.
+            if (!path.startsWith("/api/v1/")) {
+                return true;
+            }
         }
         return false;
     }
@@ -92,8 +159,87 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
             String token = authHeader.substring(BEARER_PREFIX.length());
-            JwtUtils.validateAndExtract(token, jwtProperties.secret())
-                    .ifPresent(claims -> enrichWithClaims(mutate, claims));
+            parseClaimsUnsafely(token).ifPresent(claims -> enrichWithClaims(mutate, claims));
+        }
+    }
+
+    /**
+     * Returns true when the token has the JWT shape (header.payload.signature) AND
+     * the payload segment can be Base64-URL decoded into valid JSON.
+     */
+    private boolean isStructurallyValidJwt(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            return false;
+        }
+        try {
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            MAPPER.readTree(new String(payloadBytes, StandardCharsets.UTF_8));
+            return true;
+        } catch (Exception e) { // NOSONAR java:S1166 — boolean validation
+            log.debug("JWT payload could not be parsed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Returns true when the JWT carries an {@code exp} claim that has already
+     * elapsed. Tokens without an {@code exp} claim are treated as non-expiring
+     * (legacy / service-to-service tokens).
+     */
+    private boolean isExpired(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                return false;
+            }
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            JsonNode payload = MAPPER.readTree(new String(payloadBytes, StandardCharsets.UTF_8));
+            if (!payload.hasNonNull("exp")) {
+                return false;
+            }
+            long expSeconds = payload.get("exp").asLong();
+            return expSeconds > 0 && expSeconds < (System.currentTimeMillis() / 1000L);
+        } catch (Exception e) { // NOSONAR java:S1166
+            // If we can't decode it, isStructurallyValidJwt already rejected it.
+            return true;
+        }
+    }
+
+    /**
+     * Decodes the JWT payload without verifying the signature. The downstream
+     * resource server is responsible for signature validation via its JWK Set URI;
+     * this method only exposes claims so the gateway can propagate them as HTTP
+     * headers for routing, rate-limiting and logging.
+     */
+    private Optional<TokenClaims> parseClaimsUnsafely(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                return Optional.empty();
+            }
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            JsonNode payload = MAPPER.readTree(new String(payloadBytes, StandardCharsets.UTF_8));
+
+            String subject = payload.path("sub").asText(null);
+            String email = payload.path("email").asText(null);
+
+            List<String> roles = new ArrayList<>();
+            JsonNode rolesNode = payload.path("roles");
+            if (rolesNode.isArray()) {
+                rolesNode.forEach(n -> roles.add(n.asText()));
+            }
+
+            Long customerId = payload.hasNonNull("customerId") ? payload.get("customerId").asLong() : null;
+            Long employeeId = payload.hasNonNull("employeeId") ? payload.get("employeeId").asLong() : null;
+
+            return Optional.of(new TokenClaims(subject, email, roles, customerId, employeeId));
+        } catch (Exception e) { // NOSONAR java:S1166 — intentionally lenient
+            log.debug("Could not decode JWT payload: {}", e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -101,6 +247,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         mutate.header(AppConstants.HEADER_AUTH_SUBJECT, claims.subject()).header(AppConstants.HEADER_AUTH_ROLES,
                 String.join(",", claims.roles()));
 
+        if (claims.email() != null && !claims.email().isBlank()) {
+            mutate.header(AppConstants.HEADER_AUTH_EMAIL, claims.email());
+        }
         if (claims.customerId() != null) {
             mutate.header(AppConstants.HEADER_AUTH_CUSTOMER_ID, claims.customerId().toString());
         }
@@ -111,6 +260,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        return exchange.getResponse().setComplete();
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
         return exchange.getResponse().setComplete();
     }
 }

@@ -10,9 +10,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * Filtro global de trazabilidad. Registra método, ruta, IP origen y código de
- * respuesta con la duración de cada request que pasa por el gateway. Se ejecuta
- * ANTES del filtro JWT (orden -200 vs -100).
+ * Global traceability filter. Logs method, path, source IP and response code
+ * with the duration of each request passing through the gateway. Executes
+ * BEFORE the JWT filter (order -200 vs -100).
  */
 @Log4j2
 @Component

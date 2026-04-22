@@ -3,10 +3,12 @@ package com.backandwhite.provider;
 import com.backandwhite.common.constants.AppConstants;
 import com.backandwhite.common.security.jwt.JwtProperties;
 import com.backandwhite.common.security.jwt.JwtUtils;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 /**
- * Genera tokens JWT válidos para los tests.
+ * Generates valid JWT tokens for tests.
  */
 public final class JwtTokenProvider {
 
@@ -33,5 +35,20 @@ public final class JwtTokenProvider {
     public static String customerTokenWithIds(String email, Long customerId, Long employeeId) {
         JwtProperties props = new JwtProperties(TEST_SECRET, EXPIRATION_MS, TEST_ISSUER);
         return JwtUtils.generateToken(email, email, List.of(AppConstants.ROLE_CUSTOMER), customerId, employeeId, props);
+    }
+
+    /**
+     * Generates a structurally valid JWT that carries no {@code exp} claim,
+     * used to verify that the filter does not reject tokens without expiry.
+     */
+    public static String tokenWithoutExp(String email) {
+        String headerJson = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+        String payloadJson = "{\"sub\":\"" + email + "\",\"email\":\"" + email
+                + "\",\"roles\":[\"ROLE_CUSTOMER\"]}";
+        String header = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
+        String payload = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
+        return header + "." + payload + ".fakesignature";
     }
 }

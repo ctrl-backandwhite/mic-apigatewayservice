@@ -7,8 +7,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Casos de uso para la gestión dinámica de rutas del API Gateway. Permite
- * registrar, actualizar y eliminar rutas sin necesidad de redeploy.
+ * Use cases for dynamic route management in the API Gateway. Allows
+ * registering, updating and deleting routes without redeploying.
  */
 public interface RouteManagementUseCase {
 
@@ -25,17 +25,16 @@ public interface RouteManagementUseCase {
     Mono<Long> bulkDelete(List<String> ids);
 
     /**
-     * Importa una lista de rutas masivamente. Las rutas con id duplicado se omiten
-     * y se reportan en el resultado.
+     * Bulk-imports a list of routes. Routes with duplicate ids are skipped and
+     * reported in the result.
      */
     Mono<Map<String, Object>> bulkImport(List<GatewayRoute> routes);
 
     Mono<GatewayRoute> toggleEnabled(String id);
 
     /**
-     * Publica el evento de refresco de rutas en el contexto del gateway para que
-     * Spring Cloud Gateway recargue las definiciones desde PostgreSQL sin necesidad
-     * de reiniciar el servicio.
+     * Publishes a route refresh event in the gateway context so that Spring Cloud
+     * Gateway reloads definitions from PostgreSQL without restarting the service.
      */
     Mono<Void> refresh();
 }

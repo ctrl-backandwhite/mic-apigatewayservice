@@ -11,12 +11,12 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 /**
- * Configuración de seguridad WebFlux.
+ * WebFlux security configuration.
  *
  * <p>
- * La autenticación JWT se delega completamente al
+ * JWT authentication is fully delegated to the
  * {@link com.backandwhite.infrastructure.filter.JwtAuthenticationFilter}.
- * Spring Security solo gestiona CORS y deshabilita CSRF (API REST stateless).
+ * Spring Security only manages CORS and disables CSRF (stateless REST API).
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -35,8 +35,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:5174",
-                "http://localhost:9000", "https://web-auth-des.up.railway.app",
-                "https://gateway-service-des.up.railway.app", "https://nx036.com"));
+                "http://localhost:9000", "http://host.docker.internal:9000", "http://host.docker.internal:5174",
+                "https://web-auth-des.up.railway.app", "https://gateway-service-des.up.railway.app",
+                "https://nx036.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(
                 List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Request-Id", "X-Currency"));
@@ -45,12 +46,12 @@ public class SecurityConfig {
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // CORS solo para rutas que se invocan mediante fetch/XHR desde el
-        // frontend. Las rutas de navegación (/login, /logout, etc.) NO
-        // necesitan CORS porque son páginas server-rendered accedidas como
-        // navegación completa del navegador. Registrar /** provocaba que el
-        // CorsWebFilter validase el header Origin en form-POST de /login,
-        // devolviendo 403 antes de alcanzar el proxy.
+        // CORS only for routes invoked via fetch/XHR from the
+        // frontend. Navigation routes (/login, /logout, etc.) do NOT
+        // need CORS because they are server-rendered pages accessed as
+        // full browser navigation. Registering /** caused the
+        // CorsWebFilter to validate the Origin header on /login form-POST,
+        // returning 403 before reaching the proxy.
         source.registerCorsConfiguration("/api/**", config);
         source.registerCorsConfiguration("/oauth2/**", config);
         source.registerCorsConfiguration("/.well-known/**", config);

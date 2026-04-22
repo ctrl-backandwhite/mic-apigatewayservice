@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.With;
 
 /**
- * DTO de entrada para registrar o actualizar una ruta dinámica en el gateway.
+ * Input DTO for registering or updating a dynamic route in the gateway.
  * <p>
- * Formato de predicates y filters: shortcut de Spring Cloud Gateway.
+ * Predicates and filters format: Spring Cloud Gateway shortcut.
  * 
  * <pre>
  * {

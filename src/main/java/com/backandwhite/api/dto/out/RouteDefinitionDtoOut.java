@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.With;
 
 /**
- * DTO de salida que representa la definición de una ruta tal como se expone a
- * través de la API del gateway.
+ * Output DTO representing a route definition as exposed through the gateway
+ * API.
  */
 @Data
 @With

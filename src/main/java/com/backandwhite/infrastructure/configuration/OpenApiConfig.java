@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
- * Configuración de OpenAPI/Swagger para el API Gateway.
+ * OpenAPI/Swagger configuration for the API Gateway.
  */
 @Configuration
 public class OpenApiConfig {
@@ -38,8 +38,8 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info().title("API Gateway - Route Management").version("1.0.0")
-                        .description("API para gestión dinámica de rutas del API Gateway. "
-                                + "Permite crear, actualizar, habilitar/deshabilitar y eliminar rutas en caliente.")
+                        .description("API for dynamic route management in the API Gateway. "
+                                + "Allows creating, updating, enabling/disabling and deleting routes on the fly.")
                         .contact(new Contact().name("NX036 Team").email("dev@nx036.com"))
                         .license(new License().name("Proprietary").url("https://nx036.com/license")))
                 .servers(List.of(

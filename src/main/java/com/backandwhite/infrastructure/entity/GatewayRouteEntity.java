@@ -13,8 +13,8 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 /**
- * Entidad R2DBC que representa una ruta del gateway en PostgreSQL. Los
- * predicates y filters se serializan como JSON (TEXT en base de datos).
+ * R2DBC entity representing a gateway route in PostgreSQL. Predicates and
+ * filters are serialized as JSON (TEXT in the database).
  */
 @Data
 @With
@@ -29,10 +29,10 @@ public class GatewayRouteEntity {
 
     private String uri;
 
-    /** Predicates serializados como JSON array: ["Path=/api/v1/**"] */
+    /** Predicates serialized as JSON array: ["Path=/api/v1/**"] */
     private String predicates;
 
-    /** Filters serializados como JSON array: ["RequestRateLimiter=10,20"] */
+    /** Filters serialized as JSON array: ["RequestRateLimiter=10,20"] */
     private String filters;
 
     @Column("route_order")

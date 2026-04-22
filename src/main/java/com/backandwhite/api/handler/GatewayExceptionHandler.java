@@ -14,13 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 /**
- * Manejador global de excepciones para el API Gateway (WebFlux).
+ * Global exception handler for the API Gateway (WebFlux).
  *
  * <p>
- * Convierte las excepciones de dominio en respuestas HTTP estándar de forma
- * compatible con el modelo reactivo de Spring WebFlux. Los errores de
- * enrutamiento (e.g. 404 sin ruta) son interceptados por
- * {@link GatewayWebExceptionHandler} antes de llegar aquí.
+ * Converts domain exceptions to standard HTTP responses compatible with the
+ * Spring WebFlux reactive model. Routing errors (e.g. 404 with no matching
+ * route) are intercepted by {@link GatewayWebExceptionHandler} before reaching
+ * this handler.
  *
  * @author NX036-ALFA
  */
@@ -40,7 +40,7 @@ public class GatewayExceptionHandler {
     public Mono<GatewayErrorResponseDto> handleValidation(WebExchangeBindException ex) {
         log.warn("Validation error: {}", ex.getMessage());
         List<String> details = ex.getBindingResult().getAllErrors().stream().map(e -> e.getDefaultMessage()).toList();
-        return Mono.just(errorBody(HttpStatus.BAD_REQUEST, "VE001", "Error de validación.", details));
+        return Mono.just(errorBody(HttpStatus.BAD_REQUEST, "VE001", "Validation error.", details));
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -60,8 +60,8 @@ public class GatewayExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Mono<GatewayErrorResponseDto> handleGeneral(Exception ex) {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
-        return Mono.just(
-                errorBody(HttpStatus.INTERNAL_SERVER_ERROR, "IS001", "Ha ocurrido un error inesperado.", List.of()));
+        return Mono
+                .just(errorBody(HttpStatus.INTERNAL_SERVER_ERROR, "IS001", "An unexpected error occurred.", List.of()));
     }
 
     // -------------------------------------------------------------------------
@@ -75,14 +75,14 @@ public class GatewayExceptionHandler {
 
     private String resolveDefaultMessage(HttpStatus status) {
         return switch (status) {
-            case NOT_FOUND -> "No se encontró el recurso solicitado.";
-            case UNAUTHORIZED -> "No autorizado. Por favor, inicia sesión.";
-            case FORBIDDEN -> "Acceso denegado. No tienes permisos suficientes.";
-            case BAD_REQUEST -> "Solicitud incorrecta.";
-            case METHOD_NOT_ALLOWED -> "Método HTTP no permitido.";
-            case TOO_MANY_REQUESTS -> "Demasiadas solicitudes. Por favor, espera un momento.";
-            case SERVICE_UNAVAILABLE -> "Servicio temporalmente no disponible.";
-            default -> "Ha ocurrido un error inesperado.";
+            case NOT_FOUND -> "Requested resource not found.";
+            case UNAUTHORIZED -> "Unauthorized. Please log in.";
+            case FORBIDDEN -> "Access denied. You do not have sufficient permissions.";
+            case BAD_REQUEST -> "Invalid request.";
+            case METHOD_NOT_ALLOWED -> "HTTP method not allowed.";
+            case TOO_MANY_REQUESTS -> "Too many requests. Please wait a moment.";
+            case SERVICE_UNAVAILABLE -> "Service temporarily unavailable.";
+            default -> "An unexpected error occurred.";
         };
     }
 }

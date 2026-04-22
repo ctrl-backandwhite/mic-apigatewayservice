@@ -16,21 +16,20 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Implementación de {@link RouteDefinitionRepository} que carga y persiste las
- * definiciones de rutas desde PostgreSQL mediante R2DBC.
+ * Implementation of {@link RouteDefinitionRepository} that loads and persists
+ * route definitions from PostgreSQL via R2DBC.
  *
  * <p>
- * Al implementar esta interfaz, Spring Cloud Gateway usa PostgreSQL como fuente
- * de verdad en lugar de los ficheros de configuración YAML. Cualquier cambio en
- * la base de datos + publicación de {@code RefreshRoutesEvent} recarga las
- * rutas de forma inmediata sin reiniciar el servicio.
+ * By implementing this interface, Spring Cloud Gateway uses PostgreSQL as the
+ * source of truth instead of YAML configuration files. Any change in the
+ * database + publication of {@code RefreshRoutesEvent} reloads routes
+ * immediately without restarting the service.
  *
  * <p>
- * Si una ruta tiene configuración de rate limit ({@code rateLimitReplenishRate}
- * y {@code rateLimitBurstCapacity} no nulos), se inyecta automáticamente un
- * {@code RequestRateLimiter} filter con esos valores. Esto permite configurar
- * límites de tasa distintos por endpoint de forma dinámica desde la API de
- * gestión de rutas.
+ * If a route has rate-limit configuration ({@code rateLimitReplenishRate} and
+ * {@code rateLimitBurstCapacity} not null), a {@code RequestRateLimiter} filter
+ * is automatically injected with those values. This allows configuring
+ * different rate limits per endpoint dynamically from the route management API.
  */
 @Log4j2
 @Component

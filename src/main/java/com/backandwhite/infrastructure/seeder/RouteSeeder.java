@@ -14,22 +14,22 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * Sincroniza las rutas definidas en el código con la tabla
- * {@code gateway_route} en cada arranque del servicio.
+ * Synchronizes routes defined in code with the {@code gateway_route} table on
+ * each service startup.
  *
  * <p>
- * Usa upsert (INSERT ... ON CONFLICT DO UPDATE) por lo que:
+ * Uses upsert (INSERT ... ON CONFLICT DO UPDATE) so that:
  * <ul>
- * <li>En el primer arranque crea todas las rutas.</li>
- * <li>En arranques posteriores corrige predicates, uri o rate-limit si
- * cambiaron en el código, sin tocar el flag {@code enabled} (el operador puede
- * deshabilitar una ruta manualmente y no se resetea).</li>
- * <li>Rutas extra creadas vía API quedan intactas.</li>
+ * <li>On the first startup it creates all routes.</li>
+ * <li>On subsequent startups it corrects predicates, uri or rate-limit if they
+ * changed in code, without touching the {@code enabled} flag (operators can
+ * disable a route manually and it will not be reset).</li>
+ * <li>Extra routes created via the API remain untouched.</li>
  * </ul>
  *
  * <p>
- * Las URLs de los servicios se inyectan desde el perfil de configuración activo
- * a través de {@link ServicesProperties}.
+ * Service URLs are injected from the active configuration profile via
+ * {@link ServicesProperties}.
  */
 @Log4j2
 @Component
@@ -49,8 +49,8 @@ public class RouteSeeder implements ApplicationRunner {
     }
 
     /**
-     * Hace upsert de todas las rutas definidas y publica RefreshRoutesEvent para
-     * que el gateway las recargue en caliente.
+     * Upserts all defined routes and publishes a RefreshRoutesEvent so that the
+     * gateway reloads them on the fly.
      */
     private Mono<Void> syncRoutes() {
         List<GatewayRoute> routes = buildRoutes();
@@ -64,14 +64,18 @@ public class RouteSeeder implements ApplicationRunner {
     private List<GatewayRoute> buildRoutes() {
         List<GatewayRoute> routes = new ArrayList<>();
 
-        // Un único Path= con patrones separados por coma → PathRoutePredicateFactory
-        // hace OR interno. Múltiples Path= separados serían AND → nunca coinciden.
+        // A single Path= with comma-separated patterns → PathRoutePredicateFactory
+        // does internal OR. Multiple separate Path= would be AND → never matches.
         addRouteIfConfigured(routes, "auth-service-oauth2", services.auth(),
-                List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/logout," + "/login.html," + "/register.html,"
-                        + "/forgot-password.html," + "/reset-password.html," + "/reset-success.html,"
-                        + "/reset-error.html," + "/activation-success.html," + "/activation-error.html,"
-                        + "/terms.html," + "/css/**," + "/js/**," + "/images/**," + "/favicon.ico"),
-                List.of("RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,"), -1, 0, 0, 0);
+                List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/login/**,/logout," + "/login.html,"
+                        + "/register.html," + "/forgot-password.html," + "/reset-password.html,"
+                        + "/reset-success.html," + "/reset-error.html," + "/activation-success.html,"
+                        + "/activation-error.html," + "/terms.html," + "/css/**," + "/js/**," + "/images/**,"
+                        + "/favicon.ico"),
+                // No Location-rewriting filter: RewriteLocationResponseHeader would
+                // rewrite external redirects (e.g. https://accounts.google.com/...) to
+                // the gateway host, breaking OAuth2 login with Google.
+                List.of(), -1, 0, 0, 0);
 
         addRouteIfConfigured(routes, "auth-service", services.auth(),
                 List.of("Path=/api/v1/auth/**," + "/api/v1/users/**," + "/api/v1/roles/**," + "/api/v1/groups/**,"
@@ -103,7 +107,18 @@ public class RouteSeeder implements ApplicationRunner {
         // Order service — all other authenticated order + shipping + tracking endpoints
         addRouteIfConfigured(routes, "orders-service", services.orders(),
                 List.of("Path=/api/v1/orders/**," + "/api/v1/cart/**," + "/api/v1/tracking/**," + "/api/v1/shipping/**,"
-                        + "/api/v1/returns/**," + "/api/v1/invoices/**," + "/api/v1/admin/cj-orders/**"),
+                        + "/api/v1/returns/**," + "/api/v1/invoices/**," + "/api/v1/coupons/**,"
+                        + "/api/v1/admin/cj-orders/**"),
+                0, 10, 20, 1);
+
+        // Payment service
+        addRouteIfConfigured(routes, "payments-service", services.payments(), List.of("Path=/api/v1/payments/**"), 0,
+                10, 20, 1);
+
+        // User detail service — profile, addresses, favorites, payment methods, prefs
+        addRouteIfConfigured(routes, "userdetail-service", services.userdetail(),
+                List.of("Path=/api/v1/profile/**," + "/api/v1/addresses/**," + "/api/v1/favorites/**,"
+                        + "/api/v1/payment-methods/**," + "/api/v1/notification-prefs/**," + "/api/v1/customers/**"),
                 0, 10, 20, 1);
 
         routes.add(GatewayRoute.builder().id("gateway-management").uri("forward:///")

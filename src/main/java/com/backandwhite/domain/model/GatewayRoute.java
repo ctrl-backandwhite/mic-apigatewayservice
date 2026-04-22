@@ -9,11 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.With;
 
 /**
- * Modelo de dominio que representa una ruta del API Gateway.
+ * Domain model representing an API Gateway route.
  *
  * <p>
- * Las predicates y filters se almacenan en formato shortcut de Spring Cloud
- * Gateway:
+ * Predicates and filters are stored in Spring Cloud Gateway shortcut format:
  * <ul>
  * <li>Predicate: {@code "Path=/api/v1/catalog/**"}</li>
  * <li>Filter: {@code "RequestRateLimiter=10,20"}</li>

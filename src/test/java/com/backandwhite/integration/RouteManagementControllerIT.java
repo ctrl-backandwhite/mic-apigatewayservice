@@ -149,11 +149,11 @@ class RouteManagementControllerIT extends BaseIntegration {
     }
 
     @Test
-    @Disabled("JwtAuthenticationFilter es un GlobalFilter de Spring Cloud Gateway y solo aplica "
-            + "cuando RoutePredicateHandlerMapping (order=1) gestiona la petición. "
-            + "RequestMappingHandlerMapping (order=0) captura los endpoints locales antes, "
-            + "por lo que el filter chain del gateway nunca se ejecuta para /api/v1/gateway/**. "
-            + "La cobertura de seguridad JWT debe validarse mediante un test unitario de JwtAuthenticationFilter.")
+    @Disabled("JwtAuthenticationFilter is a Spring Cloud Gateway GlobalFilter and only applies "
+            + "when RoutePredicateHandlerMapping (order=1) handles the request. "
+            + "RequestMappingHandlerMapping (order=0) captures local endpoints first, "
+            + "so the gateway filter chain never executes for /api/v1/gateway/**. "
+            + "JWT security coverage should be validated through a unit test of JwtAuthenticationFilter.")
     void findAll_withoutToken_shouldReturn401() {
         webTestClient.get().uri(BASE_PATH).exchange().expectStatus().isUnauthorized();
     }

@@ -17,17 +17,22 @@ spring:
       add-mappings: false
   cloud:
     gateway:
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
-      routes: []
-      x-forwarded:
-        enabled: true
-        for-enabled: true
-        host-enabled: true
-        port-enabled: true
-        proto-enabled: true
-        prefix-enabled: false
+      server:
+        webflux:
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            # Forward the original Host header (e.g. localhost:9000) to downstream services
+            # so they generate correct redirect URLs (OAuth2 authorize → /login needs the
+            # public host, not the internal Docker hostname).
+            - PreserveHostHeader
+          routes: []
+          x-forwarded:
+            enabled: true
+            for-enabled: true
+            host-enabled: true
+            port-enabled: true
+            proto-enabled: true
+            prefix-enabled: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
