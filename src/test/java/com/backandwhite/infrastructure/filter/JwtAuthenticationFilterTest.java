@@ -271,8 +271,8 @@ class JwtAuthenticationFilterTest {
     @Test
     void filter_onAdminOnlyPathWithCustomerToken_shouldReturnForbidden() {
         String token = JwtTokenProvider.customerToken("customer@test.com");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
-                .get("/api/v1/gateway/routes").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/gateway/routes")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
@@ -283,8 +283,8 @@ class JwtAuthenticationFilterTest {
     @Test
     void filter_onAdminOnlyPathWithAdminToken_shouldProceed() {
         String token = JwtTokenProvider.adminToken("admin@test.com");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
-                .get("/api/v1/gateway/routes").header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/gateway/routes")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
@@ -305,8 +305,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void filter_onSpaFallbackGetPath_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/home").build());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/home").build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 

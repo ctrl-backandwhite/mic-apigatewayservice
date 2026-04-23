@@ -60,8 +60,8 @@ class RequestLoggingFilterTest {
     void filter_withBlankXForwardedFor_shouldFallbackToRemoteAddress() {
         when(chain.filter(any())).thenReturn(Mono.empty());
 
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders")
-                .header("X-Forwarded-For", "   ").build());
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/orders").header("X-Forwarded-For", "   ").build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 

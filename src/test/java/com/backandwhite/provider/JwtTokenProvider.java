@@ -38,13 +38,12 @@ public final class JwtTokenProvider {
     }
 
     /**
-     * Generates a structurally valid JWT that carries no {@code exp} claim,
-     * used to verify that the filter does not reject tokens without expiry.
+     * Generates a structurally valid JWT that carries no {@code exp} claim, used to
+     * verify that the filter does not reject tokens without expiry.
      */
     public static String tokenWithoutExp(String email) {
         String headerJson = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
-        String payloadJson = "{\"sub\":\"" + email + "\",\"email\":\"" + email
-                + "\",\"roles\":[\"ROLE_CUSTOMER\"]}";
+        String payloadJson = "{\"sub\":\"" + email + "\",\"email\":\"" + email + "\",\"roles\":[\"ROLE_CUSTOMER\"]}";
         String header = Base64.getUrlEncoder().withoutPadding()
                 .encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
         String payload = Base64.getUrlEncoder().withoutPadding()
