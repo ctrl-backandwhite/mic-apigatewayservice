@@ -28,6 +28,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                // Disable the default LogoutWebFilter which intercepts /logout and
+                // redirects to /login?logout. /logout must be forwarded as-is to the
+                // auth-service so its own session-revoking logout handler can run
+                // and then redirect the browser back to the storefront home.
+                .logout(ServerHttpSecurity.LogoutSpec::disable)
                 .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll()).build();
     }
 
