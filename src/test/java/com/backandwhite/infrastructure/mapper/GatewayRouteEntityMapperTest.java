@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import tools.jackson.databind.ObjectMapper;
 
 class GatewayRouteEntityMapperTest {
@@ -39,21 +41,11 @@ class GatewayRouteEntityMapperTest {
         assertThat(domain.getRateLimitRequestedTokens()).isEqualTo(1);
     }
 
-    @Test
-    void toDomain_withNullPredicatesAndFilters_shouldReturnEmptyLists() {
+    @ParameterizedTest(name = "predicates={0} filters={1}")
+    @CsvSource(value = {"NIL, NIL", "not-valid-json, {invalid}", "'', '   '"}, nullValues = "NIL")
+    void toDomain_withMalformedOrMissingJson_shouldReturnEmptyLists(String predicates, String filters) {
         GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
-                .predicates(null).filters(null).order(0).enabled(true).build();
-
-        GatewayRoute domain = mapper.toDomain(entity);
-
-        assertThat(domain.getPredicates()).isEmpty();
-        assertThat(domain.getFilters()).isEmpty();
-    }
-
-    @Test
-    void toDomain_withInvalidJson_shouldReturnEmptyLists() {
-        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
-                .predicates("not-valid-json").filters("{invalid}").order(0).enabled(true).build();
+                .predicates(predicates).filters(filters).order(0).enabled(true).build();
 
         GatewayRoute domain = mapper.toDomain(entity);
 
@@ -106,14 +98,4 @@ class GatewayRouteEntityMapperTest {
         assertThat(restored.isEnabled()).isEqualTo(original.isEnabled());
     }
 
-    @Test
-    void toDomain_withBlankPredicatesAndFilters_shouldReturnEmptyLists() {
-        GatewayRouteEntity entity = GatewayRouteEntity.builder().id("test-route").uri("http://localhost:8080")
-                .predicates("").filters("   ").order(0).enabled(true).build();
-
-        GatewayRoute domain = mapper.toDomain(entity);
-
-        assertThat(domain.getPredicates()).isEmpty();
-        assertThat(domain.getFilters()).isEmpty();
-    }
 }

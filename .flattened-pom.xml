@@ -20,15 +20,8 @@
     </license>
   </licenses>
   <properties>
-    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-    <sonar.projectKey>nx036_${project.artifactId}</sonar.projectKey>
-    <sonar.tests>src/test/java</sonar.tests>
     <java.version>25</java.version>
-    <sonar.host.url>${env.SONAR_HOST_URL}</sonar.host.url>
-    <sonar.login>${env.SONAR_TOKEN}</sonar.login>
     <sonar.organization>ctrl-backandwhite</sonar.organization>
-    <sonar.sources>src/main/java</sonar.sources>
-    <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml,${project.basedir}/target/site/jacoco-it/jacoco.xml,${project.basedir}/target/site/jacoco-merged/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <spring-cloud.version>2025.1.0</spring-cloud.version>
   </properties>
   <dependencyManagement>

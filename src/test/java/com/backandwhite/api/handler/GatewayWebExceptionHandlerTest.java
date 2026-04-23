@@ -234,4 +234,30 @@ class GatewayWebExceptionHandlerTest {
         assertThat(contentType).isNotNull();
         assertThat(contentType.getType()).isEqualTo("text");
     }
+
+    @Test
+    void handle_whenResponseAlreadyCommitted_shouldPropagateOriginalError() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test").build());
+        exchange.getResponse().setComplete().block();
+
+        RuntimeException original = new RuntimeException("boom");
+
+        StepVerifier.create(handler.handle(exchange, original)).expectErrorMatches(e -> e == original).verify();
+    }
+
+    @Test
+    void handle_whenJsonSerializationFails_shouldPropagateError() throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper brokenMapper = org.mockito.Mockito
+                .mock(com.fasterxml.jackson.databind.ObjectMapper.class);
+        org.mockito.Mockito.when(brokenMapper.writeValueAsBytes(org.mockito.ArgumentMatchers.any()))
+                .thenThrow(new com.fasterxml.jackson.core.JsonProcessingException("fail") {
+                });
+        GatewayWebExceptionHandler brokenHandler = new GatewayWebExceptionHandler(brokenMapper);
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/test")
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE).build());
+        ResponseStatusException ex = new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+        StepVerifier.create(brokenHandler.handle(exchange, ex)).expectError().verify();
+    }
 }

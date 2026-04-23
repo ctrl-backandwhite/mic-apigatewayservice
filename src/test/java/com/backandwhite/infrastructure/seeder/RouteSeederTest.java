@@ -101,7 +101,8 @@ class RouteSeederTest {
         when(services.ecommerce()).thenReturn(null);
         when(routeFacade.upsertAll(anyList())).thenReturn(Mono.error(new RuntimeException("DB down")));
 
-        // Should not throw — error is logged and swallowed
-        seeder.run(new DefaultApplicationArguments());
+        org.assertj.core.api.Assertions.assertThatCode(() -> seeder.run(new DefaultApplicationArguments()))
+                .doesNotThrowAnyException();
+        verify(routeFacade).upsertAll(anyList());
     }
 }

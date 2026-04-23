@@ -39,7 +39,7 @@ class RouteManagementControllerIT extends BaseIntegration {
     }
 
     @Test
-    void findAll_shouldReturnListOfRoutes() throws Exception {
+    void findAll_shouldReturnListOfRoutes() {
         // NOTE: R2DBC/WebFlux integration test limitation detected
         // Data created via WebTestClient POST is not visible in subsequent GETs
         // This is a known issue with reactive database access in test isolation context
@@ -49,12 +49,11 @@ class RouteManagementControllerIT extends BaseIntegration {
                 .expectHeader().contentType(MediaType.APPLICATION_JSON).expectBodyList(RouteDefinitionDtoOut.class)
                 .returnResult().getResponseBody();
 
-        assertThat(response).isNotNull();
-        assertThat(response).hasSizeGreaterThanOrEqualTo(1); // At least the 16 seeded routes from startup
+        assertThat(response).isNotNull().hasSizeGreaterThanOrEqualTo(1);
     }
 
     @Test
-    void findById_whenExists_shouldReturnRoute() throws Exception {
+    void findById_whenExists_shouldReturnRoute() {
         // Use one of the 16 seeded routes from application startup
         RouteDefinitionDtoOut response = adminClient().get().uri(BASE_PATH + "/" + RouteDefinitionProvider.ROUTE_ID_ONE)
                 .exchange().expectStatus().isOk().expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +95,7 @@ class RouteManagementControllerIT extends BaseIntegration {
     }
 
     @Test
-    void update_whenExists_shouldReturn200WithUpdatedRoute() throws Exception {
+    void update_whenExists_shouldReturn200WithUpdatedRoute() {
         // Use one of the seeded routes instead of trying to create test data
         RouteDefinitionDtoIn updateDto = RouteDefinitionDtoIn.builder().id(RouteDefinitionProvider.ROUTE_ID_ONE)
                 .uri("http://localhost:9999").predicates(List.of("Path=/api/v1/updated/**")).filters(List.of()).order(5)
@@ -120,7 +119,7 @@ class RouteManagementControllerIT extends BaseIntegration {
     }
 
     @Test
-    void delete_whenExists_shouldReturn204() throws Exception {
+    void delete_whenExists_shouldReturn204() {
         // Use one of the seeded routes instead of creating test data
         adminClient().delete().uri(BASE_PATH + "/" + RouteDefinitionProvider.ROUTE_ID_ONE).exchange().expectStatus()
                 .isNoContent();
@@ -132,7 +131,7 @@ class RouteManagementControllerIT extends BaseIntegration {
     }
 
     @Test
-    void toggle_whenExists_shouldReturn200WithToggledState() throws Exception {
+    void toggle_whenExists_shouldReturn200WithToggledState() {
         // Use one of the seeded routes instead of creating test data
         RouteDefinitionDtoOut response = adminClient().patch()
                 .uri(BASE_PATH + "/" + RouteDefinitionProvider.ROUTE_ID_ONE + "/toggle").exchange().expectStatus()

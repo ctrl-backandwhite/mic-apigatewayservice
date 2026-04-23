@@ -50,4 +50,18 @@ public final class JwtTokenProvider {
                 .encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
         return header + "." + payload + ".fakesignature";
     }
+
+    /**
+     * Generates a structurally valid JWT without any {@code roles} claim, used to
+     * verify the admin-only path rejects tokens missing role information.
+     */
+    public static String tokenWithoutRoles(String email) {
+        String headerJson = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+        String payloadJson = "{\"sub\":\"" + email + "\",\"email\":\"" + email + "\"}";
+        String header = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
+        String payload = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
+        return header + "." + payload + ".fakesignature";
+    }
 }

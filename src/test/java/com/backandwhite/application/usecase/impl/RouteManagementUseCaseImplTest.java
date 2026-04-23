@@ -191,7 +191,7 @@ class RouteManagementUseCaseImplTest {
     void bulkDelete_whenAllFail_shouldReturn0AndNotRefresh() {
         when(routeFacade.delete("r1")).thenReturn(Mono.error(new RuntimeException("fail")));
 
-        StepVerifier.create(useCase.bulkDelete(List.of("r1"))).assertNext(deleted -> assertThat(deleted).isEqualTo(0L))
+        StepVerifier.create(useCase.bulkDelete(List.of("r1"))).assertNext(deleted -> assertThat(deleted).isZero())
                 .verifyComplete();
 
         verify(routeFacade, never()).publishRefreshEvent();
@@ -199,7 +199,7 @@ class RouteManagementUseCaseImplTest {
 
     @Test
     void bulkDelete_withEmptyList_shouldReturn0() {
-        StepVerifier.create(useCase.bulkDelete(List.of())).assertNext(deleted -> assertThat(deleted).isEqualTo(0L))
+        StepVerifier.create(useCase.bulkDelete(List.of())).assertNext(deleted -> assertThat(deleted).isZero())
                 .verifyComplete();
     }
 
@@ -222,8 +222,7 @@ class RouteManagementUseCaseImplTest {
         StepVerifier.create(useCase.bulkImport(List.of(newRoute, existingRoute))).assertNext(result -> {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = result;
-            assertThat(map.get("created")).isEqualTo(1);
-            assertThat(map.get("skipped")).isEqualTo(1);
+            assertThat(map).containsEntry("created", 1).containsEntry("skipped", 1);
         }).verifyComplete();
 
         verify(routeFacade).save(newRoute);
@@ -240,8 +239,7 @@ class RouteManagementUseCaseImplTest {
         StepVerifier.create(useCase.bulkImport(List.of(route))).assertNext(result -> {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = result;
-            assertThat(map.get("created")).isEqualTo(0);
-            assertThat(map.get("skipped")).isEqualTo(1);
+            assertThat(map).containsEntry("created", 0).containsEntry("skipped", 1);
         }).verifyComplete();
 
         // Note: routeFacade.save() is invoked eagerly by switchIfEmpty to build the
@@ -258,7 +256,7 @@ class RouteManagementUseCaseImplTest {
         StepVerifier.create(useCase.bulkImport(List.of(route))).assertNext(result -> {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = result;
-            assertThat(map.get("created")).isEqualTo(0);
+            assertThat(map).containsEntry("created", 0);
             @SuppressWarnings("unchecked")
             List<String> errors = (List<String>) map.get("errors");
             assertThat(errors).hasSize(1);

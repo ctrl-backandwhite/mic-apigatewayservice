@@ -53,110 +53,96 @@ public class RouteSeeder implements ApplicationRunner {
      * gateway reloads them on the fly.
      */
     private Mono<Void> syncRoutes() {
-        List<GatewayRoute> routes = buildRoutes();
-        if (routes.isEmpty()) {
-            log.warn("No service URLs configured — skipping route sync.");
-            return Mono.empty();
-        }
-        return routeFacade.upsertAll(routes);
+        return routeFacade.upsertAll(buildRoutes());
     }
+
+    private static final RateLimit NO_RATE_LIMIT = new RateLimit(0, 0, 0);
+    private static final RateLimit STANDARD_RATE_LIMIT = new RateLimit(10, 20, 1);
 
     private List<GatewayRoute> buildRoutes() {
         List<GatewayRoute> routes = new ArrayList<>();
 
-        // A single Path= with comma-separated patterns → PathRoutePredicateFactory
-        // does internal OR. Multiple separate Path= would be AND → never matches.
         addRouteIfConfigured(routes, "auth-service-oauth2", services.auth(),
                 List.of("Path=/oauth2/**," + "/.well-known/**," + "/login,/login/**,/logout," + "/login.html,"
                         + "/register.html," + "/forgot-password.html," + "/reset-password.html,"
                         + "/reset-success.html," + "/reset-error.html," + "/activation-success.html,"
                         + "/activation-error.html," + "/terms.html," + "/css/**," + "/js/**," + "/images/**,"
                         + "/favicon.ico"),
-                // No Location-rewriting filter: RewriteLocationResponseHeader would
-                // rewrite external redirects (e.g. https://accounts.google.com/...) to
-                // the gateway host, breaking OAuth2 login with Google.
-                List.of(), -1, 0, 0, 0);
+                List.of(), -1, NO_RATE_LIMIT);
 
         addRouteIfConfigured(routes, "auth-service", services.auth(),
                 List.of("Path=/api/v1/auth/**," + "/api/v1/users/**," + "/api/v1/roles/**," + "/api/v1/groups/**,"
                         + "/api/v1/permissions/**," + "/api/v1/scopes/**," + "/api/v1/granttypes/**,"
                         + "/api/v1/redirecturis/**," + "/api/v1/oauthclients/**"),
-                0, 10, 20, 1);
+                0, STANDARD_RATE_LIMIT);
 
-        addRouteIfConfigured(routes, "webapp", services.webapp(), List.of("Path=/nexa-auth/**"), List.of(), -2, 0, 0,
-                0);
+        addRouteIfConfigured(routes, "webapp", services.webapp(), List.of("Path=/nexa-auth/**"), List.of(), -2,
+                NO_RATE_LIMIT);
 
         addRouteIfConfigured(routes, "notification-service", services.notification(),
-                List.of("Path=/api/v1/notifications/**," + "/api/v1/notification-templates/**"), 0, 10, 20, 1);
+                List.of("Path=/api/v1/notifications/**," + "/api/v1/notification-templates/**"), 0,
+                STANDARD_RATE_LIMIT);
 
         addRouteIfConfigured(routes, "catalog-service", services.catalog(), List.of(
                 "Path=/api/v1/categories/**,/api/v1/products/**,/api/v1/reviews/**,/api/v1/attributes/**,/api/v1/brands/**,/api/v1/media/**,/api/v1/public/**,/api/v1/warranties/**,/api/v1/price-rules/**,/api/v1/taxes/**,/api/v1/sync/**"),
-                0, 10, 20, 1);
+                0, STANDARD_RATE_LIMIT);
 
         addRouteIfConfigured(routes, "cms-service", services.cms(),
                 List.of("Path=/api/v1/currency-rates/**," + "/api/v1/settings/**," + "/api/v1/campaigns/**,"
                         + "/api/v1/slides/**," + "/api/v1/gift-cards/**," + "/api/v1/newsletter/**,"
                         + "/api/v1/loyalty/**," + "/api/v1/email-templates/**," + "/api/v1/seo/**,"
                         + "/api/v1/flows/**," + "/api/v1/contact/**"),
-                0, 10, 20, 1);
+                0, STANDARD_RATE_LIMIT);
 
-        // CJ webhook endpoints — no rate limit so CJ retries are not throttled
         addRouteIfConfigured(routes, "orders-cj-webhook", services.orders(), List.of("Path=/api/v1/cj/webhook/**"),
-                List.of(), -2, 0, 0, 0);
+                List.of(), -2, NO_RATE_LIMIT);
 
-        // Order service — all other authenticated order + shipping + tracking endpoints
         addRouteIfConfigured(routes, "orders-service", services.orders(),
                 List.of("Path=/api/v1/orders/**," + "/api/v1/cart/**," + "/api/v1/tracking/**," + "/api/v1/shipping/**,"
                         + "/api/v1/returns/**," + "/api/v1/invoices/**," + "/api/v1/coupons/**,"
                         + "/api/v1/admin/cj-orders/**"),
-                0, 10, 20, 1);
+                0, STANDARD_RATE_LIMIT);
 
-        // Payment service
         addRouteIfConfigured(routes, "payments-service", services.payments(), List.of("Path=/api/v1/payments/**"), 0,
-                10, 20, 1);
+                STANDARD_RATE_LIMIT);
 
-        // User detail service — profile, addresses, favorites, payment methods, prefs
         addRouteIfConfigured(routes, "userdetail-service", services.userdetail(),
                 List.of("Path=/api/v1/profile/**," + "/api/v1/addresses/**," + "/api/v1/favorites/**,"
                         + "/api/v1/payment-methods/**," + "/api/v1/notification-prefs/**," + "/api/v1/customers/**"),
-                0, 10, 20, 1);
+                0, STANDARD_RATE_LIMIT);
 
         routes.add(GatewayRoute.builder().id("gateway-management").uri("forward:///")
                 .predicates(List.of("Path=/api/v1/gateway/**")).filters(List.of()).order(-1).enabled(true).build());
 
-        // Catch-all: ecommerce SPA — must be last (highest order number)
-        addRouteIfConfigured(routes, "ecomerce-frontend", services.ecommerce(), List.of("Path=/**"), 100, 0, 0, 0);
+        addRouteIfConfigured(routes, "ecomerce-frontend", services.ecommerce(), List.of("Path=/**"), 100,
+                NO_RATE_LIMIT);
 
         return routes;
     }
 
     private void addRouteIfConfigured(List<GatewayRoute> routes, String routeId, ServicesProperties.Service service,
-            List<String> predicates, int order, int replenishRate, int burstCapacity, int requestedTokens) {
-        addRouteIfConfigured(routes, routeId, service, predicates, List.of(), order, replenishRate, burstCapacity,
-                requestedTokens);
+            List<String> predicates, int order, RateLimit rateLimit) {
+        addRouteIfConfigured(routes, routeId, service, predicates, List.of(), order, rateLimit);
     }
 
     private void addRouteIfConfigured(List<GatewayRoute> routes, String routeId, ServicesProperties.Service service,
-            List<String> predicates, List<String> filters, int order, int replenishRate, int burstCapacity,
-            int requestedTokens) {
+            List<String> predicates, List<String> filters, int order, RateLimit rateLimit) {
         if (service == null || service.url() == null || service.url().isBlank()) {
             log.warn("Skipping route '{}' — service URL not configured.", routeId);
             return;
         }
-        String url = service.url().strip();
-        if (url.isBlank()) {
-            log.warn("Skipping route '{}' — service URL is blank after stripping whitespace.", routeId);
-            return;
-        }
-        routes.add(route(routeId, url, predicates, filters, order, replenishRate, burstCapacity, requestedTokens));
+        routes.add(route(routeId, service.url().strip(), predicates, filters, order, rateLimit));
     }
 
     private GatewayRoute route(String id, String uri, List<String> predicates, List<String> filters, int order,
-            int replenishRate, int burstCapacity, int requestedTokens) {
-        boolean hasRateLimit = replenishRate > 0;
+            RateLimit rateLimit) {
+        boolean hasRateLimit = rateLimit.replenishRate() > 0;
         return GatewayRoute.builder().id(id).uri(uri).predicates(predicates).filters(filters).order(order).enabled(true)
-                .rateLimitReplenishRate(hasRateLimit ? replenishRate : null)
-                .rateLimitBurstCapacity(hasRateLimit ? burstCapacity : null)
-                .rateLimitRequestedTokens(hasRateLimit ? requestedTokens : null).build();
+                .rateLimitReplenishRate(hasRateLimit ? rateLimit.replenishRate() : null)
+                .rateLimitBurstCapacity(hasRateLimit ? rateLimit.burstCapacity() : null)
+                .rateLimitRequestedTokens(hasRateLimit ? rateLimit.requestedTokens() : null).build();
+    }
+
+    private record RateLimit(int replenishRate, int burstCapacity, int requestedTokens) {
     }
 }

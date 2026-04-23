@@ -11,6 +11,8 @@ import com.backandwhite.provider.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -118,10 +120,11 @@ class JwtAuthenticationFilterTest {
         verify(jwtProperties, never()).secret();
     }
 
-    @Test
-    void filter_onPublicGetCatalogPath_shouldProceedWithoutToken() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/api/v1/products/123").build());
+    @ParameterizedTest(name = "GET {0} proceeds without auth")
+    @ValueSource(strings = {"/api/v1/products/123", "/api/v1/products", "/actuator/health",
+            "/oauth2/authorization/google", "/login", "/api/v1/reviews", "/api/v1/brands"})
+    void filter_onPublicGetPath_shouldProceedWithoutToken(String path) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(path).build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
@@ -138,16 +141,6 @@ class JwtAuthenticationFilterTest {
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
-    void filter_onActuatorPath_shouldProceedWithoutToken() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/actuator/health").build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
     }
 
     @Test
@@ -178,16 +171,6 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void filter_onPublicPathWithoutToken_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/api/v1/products").build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
-    }
-
-    @Test
     void filter_withTokenContainingCustomerAndEmployeeIds_shouldEnrichAllHeaders() {
         String token = JwtTokenProvider.customerTokenWithIds("user@test.com", 123L, 456L);
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders")
@@ -203,45 +186,6 @@ class JwtAuthenticationFilterTest {
         String token = JwtTokenProvider.customerTokenWithIds("user@test.com", null, null);
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/orders")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
-    }
-
-    @Test
-    void filter_onOAuth2Path_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/oauth2/authorization/google").build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
-    }
-
-    @Test
-    void filter_onLoginPath_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/login").build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
-    }
-
-    @Test
-    void filter_onPublicGetReviewsPath_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/api/v1/reviews").build());
-
-        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-        verify(chain).filter(any());
-    }
-
-    @Test
-    void filter_onPublicGetBrandsPath_shouldProceedWithoutAuth() {
-        MockServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/api/v1/brands").build());
 
         StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
@@ -333,5 +277,38 @@ class JwtAuthenticationFilterTest {
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         verify(chain, never()).filter(any());
+    }
+
+    @Test
+    void filter_onAdminOnlyPathWithoutToken_shouldReturnUnauthorized() {
+        MockServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/api/v1/gateway/routes").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        verify(chain, never()).filter(any());
+    }
+
+    @Test
+    void filter_onAdminOnlyPathWithTokenMissingRolesClaim_shouldReturnForbidden() {
+        String token = JwtTokenProvider.tokenWithoutRoles("user@test.com");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/gateway/routes")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token).build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        verify(chain, never()).filter(any());
+    }
+
+    @Test
+    void filter_onPublicPathWithMalformedToken_shouldProceedAndSkipEnrichment() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer broken.token").build());
+
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
+
+        verify(chain).filter(any());
     }
 }

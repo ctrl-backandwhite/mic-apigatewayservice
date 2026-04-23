@@ -37,7 +37,7 @@ class PostgresRouteDefinitionRepositoryTest {
 
         StepVerifier.create(repository.getRouteDefinitions()).assertNext(rd -> {
             assertThat(rd.getId()).isEqualTo("catalog-service");
-            assertThat(rd.getUri().toString()).isEqualTo("http://localhost:8083");
+            assertThat(rd.getUri()).hasToString("http://localhost:8083");
             assertThat(rd.getOrder()).isEqualTo(1);
             assertThat(rd.getPredicates()).hasSize(1);
             assertThat(rd.getPredicates().getFirst().getName()).isEqualTo("Path");

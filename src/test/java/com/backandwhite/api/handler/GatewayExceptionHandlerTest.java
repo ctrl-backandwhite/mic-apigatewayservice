@@ -155,4 +155,15 @@ class GatewayExceptionHandlerTest {
             assertThat(dto.getMessage()).isEqualTo("An unexpected error occurred.");
         }).verifyComplete();
     }
+
+    @Test
+    void handleResponseStatus_withUnknownStatusCode_shouldFallbackToInternalServerError() {
+        ResponseStatusException ex = new ResponseStatusException(org.springframework.http.HttpStatusCode.valueOf(799),
+                null);
+
+        StepVerifier.create(handler.handleResponseStatus(ex)).assertNext(dto -> {
+            assertThat(dto.getCode()).isEqualTo("GW500");
+            assertThat(dto.getMessage()).isEqualTo("An unexpected error occurred.");
+        }).verifyComplete();
+    }
 }

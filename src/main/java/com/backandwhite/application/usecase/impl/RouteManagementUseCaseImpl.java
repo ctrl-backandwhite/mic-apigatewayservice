@@ -75,6 +75,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
     }
 
     @Override
+    @SuppressWarnings("java:S4030")
     public Mono<Map<String, Object>> bulkImport(List<GatewayRoute> routes) {
         List<String> skippedIds = new ArrayList<>();
         List<String> errors = new ArrayList<>();
@@ -89,7 +90,7 @@ public class RouteManagementUseCaseImpl implements RouteManagementUseCase {
             if (created > 0)
                 routeFacade.publishRefreshEvent();
             return Map.<String, Object>of("created", created.intValue(), "skipped", skippedIds.size(), "skippedIds",
-                    skippedIds, "errors", errors);
+                    List.copyOf(skippedIds), "errors", List.copyOf(errors), "errorCount", errors.size());
         });
     }
 

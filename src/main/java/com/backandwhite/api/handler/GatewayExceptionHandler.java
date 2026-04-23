@@ -32,7 +32,7 @@ public class GatewayExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<GatewayErrorResponseDto> handleEntityNotFound(EntityNotFoundException ex) {
         log.warn("Entity not found: {}", ex.getMessage());
-        return Mono.just(errorBody(HttpStatus.NOT_FOUND, ex.getCode(), ex.getMessage(), List.of()));
+        return Mono.just(errorBody(ex.getCode(), ex.getMessage(), List.of()));
     }
 
     @ExceptionHandler(WebExchangeBindException.class)
@@ -40,7 +40,7 @@ public class GatewayExceptionHandler {
     public Mono<GatewayErrorResponseDto> handleValidation(WebExchangeBindException ex) {
         log.warn("Validation error: {}", ex.getMessage());
         List<String> details = ex.getBindingResult().getAllErrors().stream().map(e -> e.getDefaultMessage()).toList();
-        return Mono.just(errorBody(HttpStatus.BAD_REQUEST, "VE001", "Validation error.", details));
+        return Mono.just(errorBody("VE001", "Validation error.", details));
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -53,22 +53,21 @@ public class GatewayExceptionHandler {
                 ? ex.getReason()
                 : resolveDefaultMessage(status);
         log.debug("Response status exception: {} — {}", status.value(), message);
-        return Mono.just(errorBody(status, "GW" + status.value(), message, List.of()));
+        return Mono.just(errorBody("GW" + status.value(), message, List.of()));
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Mono<GatewayErrorResponseDto> handleGeneral(Exception ex) {
         log.error("Unhandled exception: {}", ex.getMessage(), ex);
-        return Mono
-                .just(errorBody(HttpStatus.INTERNAL_SERVER_ERROR, "IS001", "An unexpected error occurred.", List.of()));
+        return Mono.just(errorBody("IS001", "An unexpected error occurred.", List.of()));
     }
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private GatewayErrorResponseDto errorBody(HttpStatus status, String code, String message, List<String> details) {
+    private GatewayErrorResponseDto errorBody(String code, String message, List<String> details) {
         return GatewayErrorResponseDto.builder().code(code).message(message).details(details)
                 .dateTime(ZonedDateTime.now()).build();
     }
