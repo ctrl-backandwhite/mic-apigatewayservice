@@ -34,7 +34,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/reset-error.html", "/activation-success.html", "/activation-error.html", "/terms.html", "/css/", "/js/",
             "/images/", "/favicon.ico", "/actuator/", "/nexa-auth/", "/api/v1/auth/login", "/api/v1/auth/register",
             "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password", "/api/v1/auth/activate",
-            "/api/v1/auth/refresh-token", "/api/v1/cj/webhook/", "/api/v1/gift-cards/purchase",
+            "/api/v1/auth/refresh-token", "/api/v1/users/forgot-password", "/api/v1/users/reset-password",
+            "/api/v1/users/register", "/api/v1/users/activate", "/api/v1/cj/webhook/", "/api/v1/gift-cards/purchase",
             "/api/v1/newsletter/subscribe", "/api/v1/contact");
 
     private static final List<String> PUBLIC_GET_PATHS = List.of("/api/v1/products", "/api/v1/categories",
